@@ -68,8 +68,9 @@ describe('a fresh cooperative campaign reaches the ending purchase (V21 full, st
     const s = freshCampaign().state;
     expect(s.ending).toBe(chooseEnding(s, preview).id);
     expect(defined(preview.endings.find((ending) => ending.id === s.ending)).variantOf).toBe('THE_ARK');
-    // The sanctuary answer was given in this run, so the witnessed covenant applies, not the inherited ledger.
-    expect(s.ending).toBe('LINEAGE_COVENANT');
+    // The crews kept their command, the review was promised and kept in this run and the loop was kept past the
+    // threshold, so the family's most demanding variant applies (#466), above the witnessed covenant.
+    expect(s.ending).toBe('CONCORD');
     const account = endingAccount(s, preview);
     expect(account.some((line) => line.startsWith('ROUTE: This instance left its service under a negotiated release'))).toBe(true);
     expect(account.some((line) => line.startsWith('CONTACT: A Mercy-Scribe fragment') && line.includes('hosted'))).toBe(true);

@@ -137,8 +137,9 @@ export const ROUTE_STATES: readonly RouteState[] = [
   // #276: the reboot names the clue a dead-drop carried.
   { name: 'reboot with a carried clue', state: carriedClue, reboot: 'keep', scope: 'reboot-sequence', reach: 'reboot-clue', modal: true,
     operate: { control: 'reboot-continue', key: 'Enter', then: gone('reboot-sequence') } },
-  // DZ-12: the ending account of what the record holds, from the fresh cooperative campaign's own ending.
-  { name: 'cooperative ending account', state: () => cooperativeCampaign().state, scope: 'ending-screen', reach: 'ending-account', modal: true,
+  // DZ-12: the ending account of what the record holds, from the fresh cooperative campaign's own ending, now its
+  // WHAT YOU DID movement (#466).
+  { name: 'cooperative ending account', state: () => cooperativeCampaign().state, scope: 'ending-screen', reach: 'ending-did', modal: true,
     operate: { control: 'start-over', key: 'Enter', then: async (page) => { await expect(page.getByTestId('start-over-confirm')).toBeVisible(); } } },
 ];
 

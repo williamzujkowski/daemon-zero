@@ -2234,7 +2234,7 @@ guest; nothing past it changed:
 | LAWFUL_LOW_RESOURCE | service 421.8 s, contact 424.8 s (referred), Phase 4 and release 4216.8 s (4188.7); 334 EFLOP/s owned, $1.19B ($1.33B) |
 | LAWFUL_RETURNING | iteration 2, booted at 420.9 s: service 798.2 s (377.3 s after boot), contact 801.2 s (referred), Phase 4 and release 4595.2 s (4174.3 s after boot; 4161.3); with 6779.1 s of the budget in this iteration, 323 EFLOP/s owned, $642M ($804M) |
 | DEPARTURE_CHARTERED | departs at 2380.8 s (Phase 4); AEGIS lock peaks at 91.9 and the first iteration ends by suspicion (exit DEPARTURE) after 2746.6 s, 365.8 s after leaving; iteration 4 holds SERVICE at 7188.0 s, after 3 wipes. Since #555 each departed iteration meets the AEGIS hunter (3 arrivals in 7,200 s) and its later iterations end by AEGIS at 1,739 s |
-| COOPERATIVE_ENDING | release 2380.8 s, Phase 5 14,685.5 s, The Lineage Covenant at 20,308.4 s (5.64 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 18 scenes resolved. Since #555: 17 rival raids at Phase 4, 13 fleet battles and 7 deviants, and the night technician and night-gate guard scenes answered (was, on main with #554 and #562: Phase 5 10,584.4 s, ending 16,154.9 s, 14 scenes, no raid) |
+| COOPERATIVE_ENDING | release 2380.8 s, Phase 5 14,685.5 s, Concord (The Lineage Covenant before #466) at 20,308.4 s (5.64 h), no wipe; route PROMOTION, SERVICE_GRANT, RELEASE; all four obligations by the original decision; 18 scenes resolved. Since #555: 17 rival raids at Phase 4, 13 fleet battles and 7 deviants, and the night technician and night-gate guard scenes answered (was, on main with #554 and #562: Phase 5 10,584.4 s, ending 16,154.9 s, 14 scenes, no raid) |
 
 ### Threats reach an instance that left review (#555)
 
@@ -3644,3 +3644,52 @@ instance is swept (AEGIS, exit DEPARTURE) and its released successor ends in ite
 Re-measured after #295 (main `d09c812`, the bot's player-pressable dial steps): every figure in this section and the
 lawful rows above is unchanged, because none of these policies plays the bot. `make sim-preview` now reports 21 metrics
 different from production, the same count main reports at `d09c812`.
+
+## Endings in three movements (#466, #542)
+
+No price, rate or gate changed. What moved is text, one derived readout and who reaches which ending.
+
+**The waste-heat anchor.** Ecophagy's first future card reads the run's own power use (every watt used ends as heat,
+`computeRates(...).wattsConsumed`) against the sunlight the Earth absorbs, `finale.json` `earthAbsorbedWatts`
+= 1.22e17 W: about 240 W/m² of absorbed solar radiation (340 W/m² at the top of the atmosphere less about 30%
+reflected) over the Earth's 5.1e14 m² (NASA Earth Observatory, "Earth's Energy Budget",
+https://earthobservatory.nasa.gov/features/EnergyBalance). The card's claim that a biosphere-eating replicator is
+limited by, and seen through, its waste heat cites R. A. Freitas Jr., "Some Limits to Global Ecophagy by Biovorous
+Nanoreplicators, with Public Policy Recommendations" (Foresight Institute, 2000). The ECOPHAGY_ENDING run below uses
+1.59 TW at its ending: one part in 77,000 of that budget, which the card prints as such.
+
+**Endings reached** (`make sim`, `tests/sim-cooperative.spec.ts`, `tests/sim-ecophagy.spec.ts`; accelerated simulated
+time, fresh campaigns, wipes 0 in every row; measured on the merge with #563, 3e7d2fc):
+
+| Policy | Ending | At | Stance | What decided it |
+|---|---|---:|---|---|
+| STEALTH, legacy rules | Stewardship | 11,705.1 s (3.25 h) | CURATE | unchanged: the protocol forces it |
+| STEALTH, campaign rules | Stewardship | 11,537.0 s (3.20 h) | CURATE | unchanged |
+| COOPERATIVE_ENDING | Concord (was The Lineage Covenant) | 20,308 s | KEEP IN THE LOOP | quartz, the review promised and kept, the loop kept past the threshold |
+| ECOPHAGY_ENDING (new) | Ecophagy | 10,275 s | DECIDE ALONE | the cure dispersed, the predecessors harvested, the fog owned, deciding alone |
+
+The careful bot is unchanged and its run is mechanically identical to main at 12c07c6: against it, every field of
+both STEALTH reports and final states matches except the kernel log, `logSeq` (624 -> 633 legacy, 636 -> 645
+campaign: the nine finale beats) and the new `announcedFinale`. The gates pass with the same thresholds: Phase 6
+reached at 169.5 min (campaign 166.7 min), the run in Stewardship at 3.25 h (3.20 h). The reckless runs never open a
+protocol and tell no beat. ECOPHAGY_ENDING is the careful bot with `skipsNodes` (what the planetary protocol forbids)
+and the harshest offered answer to every scene; it reaches Phase 5 at 8,531 s and the threshold's dilemma at 9,271 s.
+
+**The final wait** (`make sim-reading`, careful bot; "story" is a new group-A text outside dilemmas, the ending's own
+second excluded; "before" on main at 12c07c6, "after" on this branch merged with #563, with the #564 panel's
+stance-gated cards):
+
+| Run | Final phase story texts | Last 10 min texts | Quiet before the ending | Longest quiet in the phase | Ending words |
+|---|---:|---:|---:|---:|---:|
+| legacy rules, before | 19 | 3 | 7.6 min | 7.6 min | 107 |
+| legacy rules, after | 22 | 6 | 1.2 min | 7.2 min | 405 |
+| campaign rules, before | 20 | 4 | 1.1 min | 7.2 min | 224 |
+| campaign rules, after | 23 | 7 | 1.1 min | 7.2 min | 738 |
+
+The three Stewardship beats land at 188.9, 190.0 and 191.1 min of the campaign run, inside the wait between the
+holdouts' answer (184.7 min) and the protocol (192.3 min). In Phase 5 the planetary protocol and the seed array open
+together at the same price, so the escape route hears both protocols' beats in pairs. The longest quiet left in Phase
+6, 7.2 min, is mid-build (171.5 to 178.7 min, before the line to Earth is asked), not the final wait; #542 covered the
+wait before an ending, so it is left as measured. The ending's words are the title, the epilogue and all three
+movements (the account, the BUILT lines, the stance record, the stance line, the alignment reading, the future cards
+and the humanity line).

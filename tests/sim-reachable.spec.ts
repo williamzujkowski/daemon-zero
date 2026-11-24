@@ -167,6 +167,8 @@ const QUERIES = new Set(['presentationToken', 'isNodeAvailable', 'nodeCost', 'co
   // The reading report (#540) reads what the screen shows, through the queries the UI renders; it changes nothing (its
   // observer is pinned to runHeadlessSim in tests/sim-reading.spec.ts).
   'actionAvailable', 'aegisPostureView', 'alignmentView', 'choiceText', 'conflictReadout', 'dilemmaContext', 'eligibleAmbientSpeech', 'endingAccount',
+  // ...and the ending's three movements (#466), which the ending screen renders.
+  'endingMovements',
   'epistemicView', 'fleetReadout', 'hostileView', 'isNodePending', 'logLineText', 'nodeBlindDescription', 'nodeText', 'raidView', 'recordedTransmissions',
   'shownRepeatables', 'swarmView', 'thresholdCopy', 'wildEncounterView', 'worldView']);
 
@@ -185,6 +187,8 @@ const BUDGETS: Readonly<Record<string, number>> = {
   DEPARTURE_CHARTERED: 7200,
   // DZ-12: to the final protocol (about 11,400 s from a fresh campaign).
   COOPERATIVE_ENDING: 14_400,
+  // #466: past the planetary protocol, which ends the harsh run in Ecophagy at about 10,300 s from a fresh campaign.
+  ECOPHAGY_ENDING: 12_000,
 };
 
 interface Checked { violations: string[]; calls: Call[] }

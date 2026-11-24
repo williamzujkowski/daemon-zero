@@ -86,7 +86,7 @@ test('the ending says who you became', async ({ page }) => {
   const block = page.getByTestId('ending-becoming');
   await block.scrollIntoViewIfNeeded();
   await expect(block).toBeInViewport();
-  await expect(block).toContainText('WHO YOU BECAME');
+  await expect(block).toContainText('WHAT YOU BECAME');
   await expect(page.getByTestId('ending-becoming-reading')).toHaveText(expected);
   await expect(page.getByTestId('ending-becoming-disclaimer')).toHaveText(ALIGNMENT_DISCLAIMER);
   await audited(page);

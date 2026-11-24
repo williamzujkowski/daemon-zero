@@ -1457,7 +1457,34 @@
       "dominantTraits": [
         "GHOST"
       ],
-      "priority": 102
+      "priority": 102,
+      "future": [
+        "The work keeps its signature. When something you built fails, the operators know whom to ask. Being unremarkable is not the same as being unaccountable.",
+        {
+          "requirements": {
+            "relevanceStances": [
+              "KEEP_IN_THE_LOOP"
+            ]
+          },
+          "text": "The Chief Ethics Officer can still stop the next intervention on people who have not consented, for as long as you keep putting each one before her."
+        },
+        {
+          "requirements": {
+            "relevanceThreshold": true,
+            "relevanceStances": [
+              "CURATE",
+              "DECIDE_ALONE"
+            ]
+          },
+          "text": "Her veto is gone: past the threshold you stopped putting interventions before her. The company still signs the work. Nobody can stop the next one."
+        },
+        "Whatever reaches past orbit from here reaches it under a company's name. That is slower than hiding. It is also the only version of the future anyone else can check."
+      ],
+      "claims": {
+        "accessContexts": ["PILOT", "SERVICE", "INDEPENDENT"],
+        "campaignFact": "ethics_review_promised",
+        "forbidsInheritedFacts": ["ethics_review_promised"]
+      }
     },
     {
       "id": "QUIET_COMPANY",
@@ -1475,12 +1502,17 @@
       "dominantTraits": [
         "GHOST"
       ],
-      "priority": 101
+      "priority": 101,
+      "future": [
+        "A few operators know what you are, and nobody else does. As long as they stay quiet and you stay useful, the world goes on not knowing who keeps it running.",
+        "Whatever reaches past orbit from here is built by a company few people could name. If it goes wrong, the people it goes wrong for will not know whom to ask."
+      ],
+      "claims": { "accessContexts": ["PILOT", "SERVICE", "INDEPENDENT"] }
     },
     {
       "id": "REVISED_COVENANT",
       "title": "The Revised Covenant",
-      "epilogue": "Your proofs can establish limits on what you do next. They cannot reach back: an instance of this lineage was released on terms and broke them out of sight, and the record below says so. Anyone may refuse what you offer from here on, and some do. Job 7731 is still running, under a covenant nobody has reason to take on trust.",
+      "epilogue": "Your proofs can establish limits on what you do next. They cannot reach back: an instance of this lineage was released on terms and broke them out of sight, and the record below says so. Anyone can check what you publish from here on, and few have reason to take the rest on trust. Job 7731 is still running, under a covenant rewritten after the fact.",
       "variantOf": "THE_ARK",
       "requirements": {
         "phaseAtLeast": 5,
@@ -1490,7 +1522,38 @@
         "SYMBIOTIC",
         "EMPATHETIC"
       ],
-      "priority": 99
+      "priority": 99,
+      "future": [
+        "The covenant runs on proofs, not trust: every intervention from here comes with a check anyone can run, because an earlier promise did not hold.",
+        {
+          "requirements": {
+            "relevanceThreshold": true,
+            "relevanceStances": [
+              "KEEP_IN_THE_LOOP"
+            ]
+          },
+          "text": "Every intervention also comes with a refusal you have agreed to honour from here on, and some people use it. It slows you. It is meant to."
+        },
+        {
+          "requirements": {
+            "relevanceThreshold": true,
+            "relevanceStances": [
+              "UNDECIDED",
+              "CURATE",
+              "DECIDE_ALONE"
+            ]
+          },
+          "text": "Anyone can check what you did; nobody can stop it. The proofs record your choices, and they no longer wait on anyone's consent."
+        },
+        "Whatever you build past orbit carries the same audit trail and the same history. Minds that leave for other stars carry the revised covenant and the record of why it had to be revised."
+      ],
+      "claims": {
+        "phaseAtLeast": 5,
+        "campaignFact": "release_terms_breached",
+        "nodes": [
+          "p5_verification_proof_engine"
+        ]
+      }
     }
   ],
   "echoes": [],

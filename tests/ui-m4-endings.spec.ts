@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-/** Authored endings, persistent presentation and the deliberate reset boundary. */
+/** Authored endings in three movements (#466), persistent presentation and the deliberate reset boundary. */
 import { act } from 'react';
 import { describe, expect, it } from 'vitest';
 import { CONTENT } from '../src/content';
@@ -19,6 +19,19 @@ describe('M4 endings', () => {
       expect(view.find('ending-title')?.textContent).toBe(ending.title);
       expect(view.find('ending-epilogue')?.textContent).toBe(ending.epilogue);
       expect(view.find('ending-summary')?.textContent).toContain('Simulated time:');
+      // #466: three headed movements, and every future card, each filled.
+      expect(view.find('ending-did')?.textContent).toContain('WHAT YOU DID');
+      expect(view.find('ending-becoming')?.textContent).toContain('WHAT YOU BECAME');
+      expect(view.find('ending-became-stance')?.textContent).not.toBe('');
+      expect(view.find('ending-after')?.textContent).toContain('WHAT COMES AFTER');
+      // A gated card (#564) shows only where its gate holds, so the count is at least the ungated cards, at most all.
+      let shown = 0;
+      for (let card = view.find('ending-after-card-0'); card !== null; card = view.find('ending-after-card-' + String(++shown))) {
+        expect(card.textContent, ending.id).not.toMatch(/\{|^$/);
+      }
+      expect(shown, ending.id).toBeGreaterThanOrEqual(ending.future.filter((entry) => typeof entry === 'string').length);
+      expect(shown, ending.id).toBeLessThanOrEqual(ending.future.length);
+      expect(view.find('ending-after-humanity')?.textContent).not.toBe('');
       act(() => { host.document.dispatchEvent(new host.KeyboardEvent('keyup', { key: 'Escape', bubbles: true })); });
       expect(view.find('ending-screen')).not.toBeNull();
       view.close();

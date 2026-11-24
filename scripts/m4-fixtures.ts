@@ -73,8 +73,10 @@ function endings(game: GameState, legacy: GameState, victory: RegistryNode): Rec
     });
     // Retired Phase 4 endings remain loadable historical states; new variants use the actual final purchase.
     // A campaign-history variant (NH-05) needs campaign rules, which production never runs: its review
-    // state is labelled as an ended save that stores the ending, the way a preview run would leave it.
-    const campaignOnly = ending.requirements?.campaignFact !== undefined;
+    // state is labelled as an ended save that stores the ending, the way a preview run would leave it. So does one that
+    // reads a recorded outcome or the standing stance (#466): no instant build holds either.
+    const req = ending.requirements;
+    const campaignOnly = req?.campaignFact !== undefined || req?.campaignOutcome !== undefined || req?.relevanceStances !== undefined;
     const ended = ending.variantOf === undefined ? input(before, { ending: chooseEnding(before, CONTENT).id })
       : campaignOnly ? input(before, { ending: ending.id }) : must(unlockNode(before, victory.id, CONTENT));
     if (ended.ending !== ending.id) throw new Error('Ending fixture mismatch: ' + ending.id);

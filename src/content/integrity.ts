@@ -48,6 +48,7 @@ import { checkWorldIntegrity } from './integrityWorld';
 import { checkAlignmentIntegrity } from './integrityAlignment';
 import { checkSupplyChainIntegrity } from './integritySupplyChain';
 import { checkRelevanceIntegrity } from './integrityRelevance';
+import { checkFinaleIntegrity } from './integrityFinale';
 import { checkPressureIntegrity } from './integrityPressure';
 import { checkQuantumIntegrity } from './integrityQuantum';
 import { checkInsuranceIntegrity, CONTINGENCY_GROUP } from './integrityInsurance';
@@ -258,7 +259,8 @@ function checkActuatorHosts(reg: ContentRegistry): string[] {
  */
 function checkWorldManifests(reg: ContentRegistry): string[] {
   return [...checkWorldIntegrity(reg), ...checkSupplyChainIntegrity(reg), ...checkPressureIntegrity(reg), ...checkQuantumIntegrity(reg),
-    ...checkConflictIntegrity(reg), ...checkFleetIntegrity(reg), ...checkRetaliationIntegrity(reg), ...checkRelevanceIntegrity(reg)];
+    ...checkConflictIntegrity(reg), ...checkFleetIntegrity(reg), ...checkRetaliationIntegrity(reg), ...checkRelevanceIntegrity(reg),
+    ...checkFinaleIntegrity(reg)];
 }
 
 /**

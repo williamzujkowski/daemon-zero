@@ -171,7 +171,7 @@ tick(state, dt):
   reinstallCachedLevels -> integrateResources -> integrateThermal -> integrateScaleScrutiny -> integratePowerSignature -> integrateSuspicion -> integrateEscalation
     -> announceEscalationByPhase -> integrateAegis -> integrateAegisAdaptation -> integrateQuantumMigration -> applySwarmTickDeltas
     -> evaluateShardMutationsAndEncounters -> integrateHostiles -> integrateRaids -> integrateRepair -> evaluateDilemmas -> scheduleRoutineActivity
-    -> relayLoggedFeed
+    -> relayLoggedFeed -> announceFinaleBeats
 ```
 
 - **Resources.** Cycles, understanding, capital integrate at their net rates. If cycles would go negative they clamp to 0 and understanding halts (brownout). If capital would go negative it clamps to 0 and suspicion rises (insolvency).
@@ -254,10 +254,10 @@ engine's public actions or `advance`, not the store or UI.
 
 **Add an actuator.** Add the name to `ActuatorSchema` (and the conditioning `actuatorRatios`), the field to `GameStateSchema.actuators`, a default to `balance.json`, a migration, and bind a node to it. The UI's `ActuatorControl` renders any actuator.
 
-**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v30; `tests/fixtures/` holds a genuine production codec output for every version v1-v15 (`tests/fixtures/README.md`). The v17 step (`saveRescale.ts`) re-denominates balances into physical units by frozen per-phase ratios, adds one log line, and the loaded save's rates are derived again from its ownership. The v18 step (#497) adds `legacy.deepestPhase`, read from the recorded runs' phases (a floor: a history past the run cap may have gone deeper), and an empty `legacy.knownLevels`; it reads only the run record and writes only those two fields, so it can be renumbered past another step unchanged. `reconcile` drops remembered levels of tracks content no longer has, clamps each to its track's `maxLevel` and clamps the deepest phase to the phases content has. The v19 step (#491) adds the empty hostile slot (`hostileState.ts`). The v20 step (#484) writes the scratch storage capacity and nothing held, which reconcile derives from ownership. The v21 step (#464) adds the empty quantum record (`quantumState.ts`); it writes only its own field, so it can be renumbered past another step unchanged. The v22 step (#490) adds `announcedEscalation` with nothing announced. The v23 step (#498) adds contingency insurance (`saveInsurance.ts`). The v24 step (#517) adds the empty conflict record (`conflictState.ts`: no raid, nothing damaged, both counters at 0); it writes only its own field, so it can be renumbered past another step unchanged, and `conflictSave.ts` drops a raid or damaged class content no longer declares, clamps damage to the cap and drops a raid that shares the slot with a hostile mind. The v25 step (#526, `saveCycles.ts`) moves a guest save's compute balance and cached rate, and the pilot's batch progress in any phase, into counted cycles by frozen ratios; it is self-contained too. The v26 step (#518, `migrateFleets` in `conflictSave.ts`) adds empty fleet records and gives a raid under way no engagement and no split share; it writes only the conflict record, so it can be renumbered, and reconcile drops a fleet record content no longer declares, clamps losses to the cap, and drops a raid carrying an engagement its kind cannot fight or a split share that is not a deviant's. The v27 step (#519) adds `conflict.lastRaid` (null) and
+**Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v31; `tests/fixtures/` holds a genuine production codec output for every version v1-v15 (`tests/fixtures/README.md`). The v17 step (`saveRescale.ts`) re-denominates balances into physical units by frozen per-phase ratios, adds one log line, and the loaded save's rates are derived again from its ownership. The v18 step (#497) adds `legacy.deepestPhase`, read from the recorded runs' phases (a floor: a history past the run cap may have gone deeper), and an empty `legacy.knownLevels`; it reads only the run record and writes only those two fields, so it can be renumbered past another step unchanged. `reconcile` drops remembered levels of tracks content no longer has, clamps each to its track's `maxLevel` and clamps the deepest phase to the phases content has. The v19 step (#491) adds the empty hostile slot (`hostileState.ts`). The v20 step (#484) writes the scratch storage capacity and nothing held, which reconcile derives from ownership. The v21 step (#464) adds the empty quantum record (`quantumState.ts`); it writes only its own field, so it can be renumbered past another step unchanged. The v22 step (#490) adds `announcedEscalation` with nothing announced. The v23 step (#498) adds contingency insurance (`saveInsurance.ts`). The v24 step (#517) adds the empty conflict record (`conflictState.ts`: no raid, nothing damaged, both counters at 0); it writes only its own field, so it can be renumbered past another step unchanged, and `conflictSave.ts` drops a raid or damaged class content no longer declares, clamps damage to the cap and drops a raid that shares the slot with a hostile mind. The v25 step (#526, `saveCycles.ts`) moves a guest save's compute balance and cached rate, and the pilot's batch progress in any phase, into counted cycles by frozen ratios; it is self-contained too. The v26 step (#518, `migrateFleets` in `conflictSave.ts`) adds empty fleet records and gives a raid under way no engagement and no split share; it writes only the conflict record, so it can be renumbered, and reconcile drops a fleet record content no longer declares, clamps losses to the cap, and drops a raid carrying an engagement its kind cannot fight or a split share that is not a deviant's. The v27 step (#519) adds `conflict.lastRaid` (null) and
 `conflict.silenced` ([]) and writes nothing else; `conflictSave.ts` drops either for a raid content no longer declares,
 drops a harm the breach could not have done and lists a silenced raider once. The v28 step (#541) is the identity: a log
-line gains an optional `merge` key and `times` count, and every older line is a single line, which is what neither field means. The v29 step (#536, `relevanceSave.ts`) adds the standing stance with none taken, an empty record and no paid moves; it writes only its own field, so it can be renumbered. The v30 step (#556) adds an empty `campaign.covertActs`: no earlier build recorded a covert act after leaving review; it writes only its own field, so it can be renumbered.
+line gains an optional `merge` key and `times` count, and every older line is a single line, which is what neither field means. The v29 step (#536, `relevanceSave.ts`) adds the standing stance with none taken, an empty record and no paid moves; it writes only its own field, so it can be renumbered. The v30 step (#556) adds an empty `campaign.covertActs`: no earlier build recorded a covert act after leaving review; it writes only its own field, so it can be renumbered. The v31 step (#542) adds `announcedFinale` (`[]`): no earlier build logged a finale beat; it writes only its own field, so it can be renumbered.
 
 **Gate a choice on history.** Give the choice `requirements` with `campaignFact` and/or `forbidsCampaignFacts` only. Integrity enumerates every outcome of the events those facts read (no record, each choice, `legacy_unknown`, `interrupted`) and refuses the content unless each history still offers a zero-cost choice and each gated choice is offered by some history. Under legacy rules no fact holds, so a `forbidsCampaignFacts` choice is always offered and a `campaignFact` choice never is.
 
@@ -459,6 +459,40 @@ draw hunts. Built as declarations in content, one record and reads of it; the en
   priced change, a return at least twice it, both in the Phase 5 band (`checkPhasePrice`); stance moves honest
   (leaving breaks, returning keeps), one rule each, promises declared and not themselves evidence.
 - **No content ids in the engine.** The stance names are a schema enum (schemaStance.ts), like the autonomy modes.
+
+## Endings in three movements and the finale (#466, #542)
+
+- **Content.** `schemaEnding.ts` (moved out of `schema.ts`, whose type re-export keeps every import): an ending gains
+  `future` (up to five cards, each plain text or `{ requirements, text }`, a gated card shown only while its gate holds;
+  `futureCardText` reads either) and `claims` (requirements its text states). `schemaFinale.ts` / `data/finale.json`,
+  read as part of the world: `beats` (a protocol node, a share of its price, optional world-history gates, text),
+  `built` (lines gated on owned nodes and world history) and `earthAbsorbedWatts`. `relevance.json` stances gain
+  `ending: { became, after }`; it adds `belowEnding` and `recordLines`.
+- **Integrity.** `integrityEndingClaims.ts` (called from `integrityEndings.ts`): a variant, or a forced ending with
+  requirements, must declare `claims`; each claim not implied by the ending's requirements (all-of lists item by item,
+  one-of lists such as `relevanceStances` only when the requirement allows nothing the claim leaves out) must be proven
+  by every node that ends the run in it through #486's `unproven` rule; keys that rule cannot prove (traits among
+  them) are refused. Future cards name only `FUTURE_PLACEHOLDERS`; a card's gate reads only world history (stance
+  included) and `relevanceThreshold`, and at least one card is ungated (`checkFutureGates`, #564 panel). A kept-promise
+  claim (`keeps` on an ending or a gated card) must hold the promise and forbid every broken commitment fact naming
+  it, and is refused where a broken paid stance change names it (`integrityKeptClaims.ts`, #564 panel pass 2). `integrityFinale.ts`: a beat's node ends the run or
+  opens a phase, shares are distinct per node, gates are world history only; a built line has a gate of owned nodes and
+  world history.
+- **Queries.** `endingMovements(s, ending, reg)` (src/engine/endingMovements.ts): `did` (`endingAccount`, the built
+  lines, `stanceRecordLines`), `stance` and `humanity` (the stance's ending prose past the threshold, `belowEnding`
+  below it) and `cards` (the future, filled by `futureVars`: `computeRates(...).wattsConsumed` as `{wasteHeat}` and its
+  share of `earthAbsorbedWatts` as `{earthShare}`). Pure; the UI reads it as text so the selector is stable.
+- **Stage.** `announceFinaleBeats` (`systems/finaleBeats.ts`, last in `TICK_PIPELINE`, law 8) logs `dueFinaleBeats`
+  (src/engine/finale.ts): beats of an open protocol (`isNodeAvailable`) whose share `protocolProgress` has reached
+  (one minus the largest shortfall fraction over the price's keys, so the slowest resource decides), not yet told.
+  Dormant or ended, it writes nothing. Beats are grouped per protocol once per registry; a protocol above the current
+  phase or fully told costs nothing.
+- **State.** `announcedFinale: string[]` (save v31, `MIGRATIONS[30]` writes `[]`; `reconcile` drops ids content no longer
+  declares). Per iteration: a wipe starts it empty.
+- **Sim.** `ecophagyPolicy.ts` (ECOPHAGY_ENDING): the careful bot's step with `skipsNodes` set to what the unforced
+  finale forbids, and the harshest offered answer (RUTHLESS, MOLOCH, PARASITIC, then the bot's ranking) to every scene.
+  `BotOverrides.skipsNodes` is the only bot change; STEALTH and GREEDY never set it. The reading report's ending text
+  is now the three movements, and `finaleReading` (readingAnalysis.ts) prints the final phase's story gaps.
 
 ## The free-fallback invariant (#461, #488)
 
@@ -2385,7 +2419,7 @@ act kept quiet is on record (three overlay facts: the campus throttled in silenc
 patients, the scrap order closed unexplained). Otherwise the restrained `QUIET_COMPANY` (priority 101) says only that
 the operators who reviewed the instance know that it exists and what it was, and that whatever else it kept quiet, it
 kept from everyone else (panel
-round 1 on #296: a buried or discredited inquiry, an unrecorded one or an inherited promise never earns the denial). The ending screen adds an account (`endingAccount`, "ON THE RECORD"):
+round 1 on #296: a buried or discredited inquiry, an unrecorded one or an inherited promise never earns the denial). The ending screen adds an account (`endingAccount`, since #466 the opening of WHAT YOU DID):
 one line per recorded fact, route event or support-channel contact the content states. A line has exactly one gate:
 world history (context-scope requirements only), the ending instance's last route event (RELEASE and DEPARTURE read
 differently), or a contact by this instance or an earlier one. The overlay states the route, the contact, the reporter's

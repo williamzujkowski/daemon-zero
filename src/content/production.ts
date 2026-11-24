@@ -21,6 +21,7 @@ import dilemmas from './data/dilemmas.json';
 import echoes from './data/echoes.json';
 import endings from './data/endings.json';
 import factions from './data/factions.json';
+import finale from './data/finale.json';
 import lineage from './data/lineage.json';
 import narrative from './data/narrative.json';
 import phase0 from './data/phases/phase0_guest.json';
@@ -66,8 +67,9 @@ export const ORIGINAL_RAW_CONTENT: RawContent = {
   contextCopy,
   routeCopy,
   achievements,
-  // The conflict foundation (#517) and the relevance threshold (#536) are their own files, read as part of the world.
-  world: { ...world, conflict, relevance },
+  // The conflict foundation (#517), the relevance threshold (#536) and the finale (#542) are their own files, read as part
+  // of the world.
+  world: { ...world, conflict, relevance, finale },
   alignment,
 };
 

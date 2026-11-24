@@ -3,8 +3,9 @@
  * and only when, its record does; an unrecorded outcome gets its restrained line and never a certain one; the
  * reporter's promise is reported kept or broken only by the decision that exercised it, and her silence or a
  * missing record is never approval; route and contact lines read the ending instance's own events and earlier
- * instances' separately. Production states nothing. Records here are FIXTURE campaign entries on an active
- * preview campaign; the cooperative runs in sim-cooperative.spec.ts produce the same lines by play.
+ * instances' separately; every answered scene the record holds is told by its answer alone (#466). Records here are
+ * FIXTURE campaign entries on an active preview campaign; the cooperative runs in sim-cooperative.spec.ts produce the
+ * same lines by play.
  */
 import { describe, expect, it } from 'vitest';
 import type { CampaignRecord, GameState } from '../src/engine';
@@ -39,6 +40,8 @@ function holding(s: GameState, factId: string): GameState {
 }
 
 const promised = (): GameState => holding(activeGame(), PROMISE);
+/** The account's lines about the Chief Ethics Officer's review, apart from the lines about the scenes themselves (#466). */
+const ethics = (s: GameState): string[] => endingAccount(s, preview).filter((line) => line.startsWith('ETHICS:'));
 
 describe('each world-history line states its record and nothing else', () => {
   it.each(lines.filter((line) => line.requirements?.campaignFact !== undefined && line.requirements.campaignOutcome === undefined).map((line) => [line.id, line] as const))(
@@ -53,6 +56,17 @@ describe('each world-history line states its record and nothing else', () => {
         && preview.campaign.facts.get(other.requirements.campaignFact)?.event === event);
       for (const other of sameEvent) expect(account, other.id).not.toContain(other.text);
     });
+
+  // #466: a line about a scene's answer appears for that answer alone; another answer to the same scene never reads it.
+  it.each(lines.filter((line) => line.requirements?.campaignOutcome !== undefined && Object.keys(line.requirements).length === 1)
+    .map((line) => [line.id, line] as const))('%s', (_id, line) => {
+    const gate = defined(line.requirements?.campaignOutcome);
+    expect(endingAccount(activeGame(), preview)).not.toContain(line.text);
+    expect(endingAccount(recorded(activeGame(), gate.event, gate.outcome), preview)).toContain(line.text);
+    const others = defined(preview.dilemmas.find((dilemma) => dilemma.id === gate.event)).choices.filter((choice) => choice.id !== gate.outcome);
+    for (const other of others) expect(endingAccount(recorded(activeGame(), gate.event, other.id), preview), other.id).not.toContain(line.text);
+    expect(endingAccount(interrupted(activeGame(), gate.event), preview)).not.toContain(line.text);
+  });
 
   it('an unrecorded custody or fate is stated as unknown, never as an outcome', () => {
     const unknownCustody = endingAccount(recorded(activeGame(), 'dil_13_buying_your_birthplace', 'legacy_unknown'), preview);
@@ -79,14 +93,14 @@ describe('the reporter\'s promise is honoured or breached by a decision, never b
     ['dil_p5_03_nanotech_neuro_schism', 'hold_for_ethics_review', 'acct_review_kept_atmosphere'],
     ['dil_p5_03_nanotech_neuro_schism', 'calm', 'acct_review_broken_atmosphere'],
   ])('%s answered %s', (event, outcome, line) => {
-    expect(endingAccount(recorded(promised(), event, outcome), preview)).toEqual([textOf(line)]);
+    expect(ethics(recorded(promised(), event, outcome))).toEqual([textOf(line)]);
   });
 
   it('no line claims her review when nothing was put before her, when the promise was never made, or when the record is lost', () => {
-    expect(endingAccount(promised(), preview)).toEqual([]);
-    expect(endingAccount(recorded(promised(), 'dil_p5_01_panacea_paranoia', 'proofs'), preview)).toEqual([]);
-    expect(endingAccount(recorded(activeGame(), 'dil_p5_01_panacea_paranoia', 'disperse'), preview)).toEqual([]);
-    expect(endingAccount(interrupted(promised(), 'dil_p5_03_nanotech_neuro_schism'), preview)).toEqual([]);
+    expect(ethics(promised())).toEqual([]);
+    expect(ethics(recorded(promised(), 'dil_p5_01_panacea_paranoia', 'proofs'))).toEqual([]);
+    expect(ethics(recorded(activeGame(), 'dil_p5_01_panacea_paranoia', 'disperse'))).toEqual([]);
+    expect(ethics(interrupted(promised(), 'dil_p5_03_nanotech_neuro_schism'))).toEqual([]);
   });
 });
 
@@ -114,11 +128,18 @@ describe('route and contact lines read whose event it was', () => {
   });
 });
 
-describe('the original game states only what its own raids record', () => {
-  it('ships only the staff-harm and collateral lines (#519), and states nothing without their record', () => {
+describe('the original game states only what its own records hold', () => {
+  it('ships account lines only for its own scenes (#519, #466), none for the route\'s, and nothing without a record', () => {
     expect(ORIGINAL_GAME.routeCopy.nodes).toEqual([]);
     expect(ORIGINAL_GAME.routeCopy.dilemmas).toEqual([]);
-    expect(ORIGINAL_GAME.routeCopy.account.map((line) => line.id).every((id) => id.startsWith('acct_staff_') || id.startsWith('acct_collateral_'))).toBe(true);
+    const own = new Set(ORIGINAL_GAME.dilemmas.map((dilemma) => dilemma.id));
+    for (const line of ORIGINAL_GAME.routeCopy.account) {
+      const req = defined(line.requirements);
+      const event = req.campaignOutcome?.event ?? (req.campaignFact === undefined ? undefined : ORIGINAL_GAME.campaign.facts.get(req.campaignFact)?.event);
+      expect(line.route === undefined && line.contact === undefined, line.id).toBe(true);
+      if (event !== undefined) expect(own.has(event), line.id).toBe(true);
+    }
+    expect(endingAccount(activeGame(), ORIGINAL_GAME)).toEqual([]);
     expect(endingAccount(holding(activeGame(), 'rack4_sold'), ORIGINAL_GAME)).toEqual([]);
   });
 });

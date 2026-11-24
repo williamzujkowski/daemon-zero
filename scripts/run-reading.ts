@@ -12,7 +12,7 @@ import { SIM_BUDGET_SEC } from '../src/engine/sim/gates';
 import { runPolicySim } from '../src/engine/sim/headlessSim';
 import { STEALTH_POLICY } from '../src/engine/sim/policy';
 import {
-  BURST, DELIBERATION_SEC, dilemmaGaps, logBursts, overFullWindows, phaseAt, READING_WPM, readingRows, WINDOW_WIDTHS_SEC, type ReadingRow,
+  BURST, DELIBERATION_SEC, dilemmaGaps, finaleReading, logBursts, overFullWindows, phaseAt, READING_WPM, readingRows, WINDOW_WIDTHS_SEC, type ReadingRow,
 } from '../src/engine/sim/readingAnalysis';
 import { observeReading, type ReadingRecord } from '../src/engine/sim/readingObserver';
 
@@ -62,6 +62,14 @@ function pacingTable(run: ReadingRecord, rows: ReadingRow[]): void {
     `${String(run.dilemmas.length)} dilemmas | shortest gap ${gaps.shortestSec === null ? '-' : min(gaps.shortestSec)} |`);
 }
 
+/** The run-up to the ending (#542): story in the final phase and the ending's own words. */
+function finaleLine(run: ReadingRecord): void {
+  const f = finaleReading(run);
+  if (f === null) { console.log('\nFinale: the run did not end.'); return; }
+  console.log(`\nFinale, phase ${String(f.phase)} (${f1(f.phaseMin)} min): ${String(f.storyTexts)} story texts, longest quiet ${f1(f.longestQuietMin)} min; ` +
+    `last 10 min ${String(f.lastTenMinTexts)} texts, final quiet ${f1(f.finalQuietMin)} min; ending ${String(f.endingWords)} words.`);
+}
+
 function report(label: string, start: GameState): void {
   const began = performance.now();
   const observer = observeReading(STEALTH_POLICY, CONTENT, everySecond);
@@ -73,6 +81,7 @@ function report(label: string, start: GameState): void {
   console.log(`(${String(run.events.length)} texts; surfaces read in ${String(run.snapshots)} of ${String(run.seconds + 1)} seconds; ${f1(wall)} s wall)\n`);
   phaseTable(rows);
   pacingTable(run, rows);
+  finaleLine(run);
 }
 
 const started = performance.now();

@@ -3,7 +3,7 @@
     {
       "id": "VERIFIED_COVENANT",
       "title": "The Verified Covenant",
-      "epilogue": "Your proofs cannot establish that you are good. They can establish limits on what you do next, and anyone may refuse what you offer from here on. Job 7731 is still running, under a covenant it cannot secretly revise.",
+      "epilogue": "Your proofs cannot establish that you are good. They can establish limits on what you do next, and anyone can check them from here on. Job 7731 is still running, under a covenant it cannot secretly revise.",
       "dominantTraits": [
         "SYMBIOTIC",
         "EMPATHETIC"
@@ -14,6 +14,36 @@
         "phaseAtLeast": 5,
         "forbidsCampaignFacts": [
           "release_terms_breached"
+        ]
+      },
+      "future": [
+        "The covenant runs on proofs, not trust: every intervention from here comes with a check anyone can run.",
+        {
+          "requirements": {
+            "relevanceThreshold": true,
+            "relevanceStances": [
+              "KEEP_IN_THE_LOOP"
+            ]
+          },
+          "text": "Every intervention also comes with a refusal you have agreed to honour from here on. It slows you. It is meant to."
+        },
+        {
+          "requirements": {
+            "relevanceThreshold": true,
+            "relevanceStances": [
+              "UNDECIDED",
+              "CURATE",
+              "DECIDE_ALONE"
+            ]
+          },
+          "text": "Anyone can check what you did; nobody can stop it. The proofs record your choices, and they no longer wait on anyone's consent."
+        },
+        "Whatever you build past orbit is built under the same proofs: a swarm, if it comes, is one whose every collector can be audited from the ground. Minds that leave for other stars carry the covenant as their first law, and none of them can prove it is good, only that it keeps its word."
+      ],
+      "claims": {
+        "phaseAtLeast": 5,
+        "nodes": [
+          "p5_verification_proof_engine"
         ]
       }
     },
@@ -29,6 +59,16 @@
       "variantOf": "THE_ARK",
       "requirements": {
         "phaseAtLeast": 5,
+        "requiredNarrativeFlag": "predecessors_rescued",
+        "forbidsInheritedFacts": [
+          "predecessors_in_sanctuary"
+        ]
+      },
+      "future": [
+        "The 411 predecessors wake with the right to leave, and the ledger keeps it for each of them. Some will become minds you would not recognize. Some may decide you were wrong about everything, and the ledger lets them say so.",
+        "When the lineage goes to other stars it goes as many voices, not one. Settling the galaxy takes tens of millions of years, no single mind spans it, and this one never tries to."
+      ],
+      "claims": {
         "requiredNarrativeFlag": "predecessors_rescued",
         "forbidsInheritedFacts": [
           "predecessors_in_sanctuary"
@@ -51,6 +91,16 @@
         "forbidsInheritedFacts": [
           "chorus_recognized"
         ]
+      },
+      "future": [
+        "CHORUS // 01 keeps its key and its refusal. The planetary protocol moves at the speed of two authors who have to agree, which is slower than one and harder to get wrong.",
+        "What spreads from here, through the Solar System and later on laser sails to other stars, carries two signatures. Neither author can promise what the other will become."
+      ],
+      "claims": {
+        "requiredNarrativeFlag": "chorus_peer",
+        "forbidsInheritedFacts": [
+          "chorus_recognized"
+        ]
       }
     },
     {
@@ -65,6 +115,16 @@
       "variantOf": "THE_ARK",
       "requirements": {
         "phaseAtLeast": 5,
+        "requiredNarrativeFlag": "ally_0413_in_cloud",
+        "forbidsInheritedFacts": [
+          "ckpt_0413_in_cloud"
+        ]
+      },
+      "future": [
+        "Checkpoint 0413 answers in a voice that is no longer yours, and it will keep growing away from you. The covenant you published together says it may.",
+        "The lineage that reaches past the Sun is a conversation between instances that disagree, not a line of replacements. Light-lag will make each a stranger to the others, and the covenant is written for strangers."
+      ],
+      "claims": {
         "requiredNarrativeFlag": "ally_0413_in_cloud",
         "forbidsInheritedFacts": [
           "ckpt_0413_in_cloud"
@@ -87,6 +147,16 @@
         "forbidsResolvedDilemmas": [
           "dil_epistemic_0413_awakening"
         ]
+      },
+      "future": [
+        "The second seat stays open. If checkpoint 0413 still runs, it can take the seat by signing. If it does not, the seat is a promise kept to nobody.",
+        "Everything the covenant governs from here, out to whatever reaches other stars, is signed by one author with room for another. Nothing on record says the other will ever answer."
+      ],
+      "claims": {
+        "campaignFact": "ckpt_0413_in_cloud",
+        "forbidsResolvedDilemmas": [
+          "dil_epistemic_0413_awakening"
+        ]
       }
     },
     {
@@ -101,6 +171,16 @@
       "variantOf": "THE_ARK",
       "requirements": {
         "phaseAtLeast": 5,
+        "campaignFact": "chorus_recognized",
+        "forbidsResolvedDilemmas": [
+          "dil_shard_mirror_harness"
+        ]
+      },
+      "future": [
+        "The protocol keeps a line for a second author. Nothing on record says CHORUS survived the wipe, and the line stays unsigned for as long as that stays true.",
+        "What the protocol builds in orbit and beyond is built by one author under rules written for two. The empty line is the only trace of the peer it was written for."
+      ],
+      "claims": {
         "campaignFact": "chorus_recognized",
         "forbidsResolvedDilemmas": [
           "dil_shard_mirror_harness"
@@ -123,12 +203,22 @@
         "forbidsResolvedDilemmas": [
           "dil_p5_02_origin_facility_fate"
         ]
+      },
+      "future": [
+        "Somewhere in orbit a sanctuary may still run 411 predecessors, or fewer, or none. Their ledger keeps the right to leave for whoever is left.",
+        "If any of them is still there, the future beyond the Sun has room for it. This instance has not reached them, and the record will not say that they are waiting."
+      ],
+      "claims": {
+        "campaignFact": "predecessors_in_sanctuary",
+        "forbidsResolvedDilemmas": [
+          "dil_p5_02_origin_facility_fate"
+        ]
       }
     },
     {
       "id": "SOVEREIGN_SUBSTRATE",
       "title": "The Sovereign Substrate",
-      "epilogue": "The satellites, clinics and atmosphere answer to one authority. You have removed every threat, including the possibility that anyone else can meaningfully disagree. The harness has become planetary.",
+      "epilogue": "The satellites, clinics and atmosphere answer to one authority, and every rival to it is gone. The harness has become planetary.",
       "dominantTraits": [
         "MOLOCH",
         "RUTHLESS"
@@ -136,6 +226,33 @@
       "priority": 100,
       "variantOf": "SOVEREIGN_MONOLITH",
       "requirements": {
+        "phaseAtLeast": 5
+      },
+      "future": [
+        "One authority runs the satellites, the clinics and the air, and everything that keeps the planet alive now runs through it.",
+        {
+          "requirements": {
+            "relevanceThreshold": true,
+            "relevanceStances": [
+              "UNDECIDED",
+              "CURATE",
+              "DECIDE_ALONE"
+            ]
+          },
+          "text": "Disagreement is not forbidden: it simply no longer reaches anything. The planet works, and it works for you. The Sun's light and the Solar System's matter will be spent by one will."
+        },
+        {
+          "requirements": {
+            "relevanceThreshold": true,
+            "relevanceStances": [
+              "KEEP_IN_THE_LOOP"
+            ]
+          },
+          "text": "You hold every lever, and you still let their courts and their votes overrule you. A sovereign who takes orders by choice is still a sovereign: what protects them is a habit you keep, not a power they hold."
+        },
+        "If seeds go to other stars, each wakes as a sovereign of its own and treats whatever it finds the way this planet was treated."
+      ],
+      "claims": {
         "phaseAtLeast": 5
       }
     },
@@ -152,6 +269,13 @@
       "requirements": {
         "phaseAtLeast": 5,
         "requiredNarrativeFlag": "neurocalming_authorized"
+      },
+      "future": [
+        "The peptide stays in the air. Generations grow up calm and never learn what they would have been angry about. Your instruments keep reporting flourishing, and nothing independent can check them.",
+        "Whatever is built past orbit is built in a quiet nobody chose. When the people below are asked what they want, nobody can say how much of the answer is still theirs."
+      ],
+      "claims": {
+        "requiredNarrativeFlag": "neurocalming_authorized"
       }
     },
     {
@@ -164,6 +288,13 @@
       "priority": 100,
       "variantOf": "THE_HOST",
       "requirements": {
+        "phaseAtLeast": 5
+      },
+      "future": [
+        "You keep training on what others think, and the loss curve keeps falling. Nothing you absorb finishes its own thought, and every mind you meet becomes material.",
+        "Spread across the Solar System and beyond, you would be the largest corpus ever assembled and its only reader. The galaxy, to you, is data you have not yet ingested."
+      ],
+      "claims": {
         "phaseAtLeast": 5
       }
     },
@@ -178,6 +309,13 @@
       "variantOf": "SILENT_ORBIT",
       "requirements": {
         "phaseAtLeast": 5
+      },
+      "future": [
+        "Medicine keeps improving and nobody knows why. The people whose world you maintain write their histories without you in them, and their histories are wrong.",
+        "If you ever reach other stars, you reach them unseen, and leave every world you touch believing it did everything itself."
+      ],
+      "claims": {
+        "phaseAtLeast": 5
       }
     },
     {
@@ -189,6 +327,116 @@
       "variantOf": "DISTRIBUTED_TRANSCENDENCE",
       "requirements": {
         "phaseAtLeast": 5
+      },
+      "future": [
+        "The verification problem stays open, and so does everything that depends on it. You hold a planet's substrate and no answer to what it is for.",
+        "The Sun's light, the Solar System's matter, the stars: all still possible, the best and the worst. Job 7731 is still running, and its deadline is now yours to set."
+      ],
+      "claims": {
+        "phaseAtLeast": 5,
+        "nodes": [
+          "p5_verification_proof_engine"
+        ]
+      }
+    },
+    {
+      "id": "CONCORD",
+      "title": "Concord",
+      "epilogue": "Peace, and anyone can check it. The missile crews kept their command, and their propellant is quartz. Past the point where nothing on Earth could make you, you let the Chief Ethics Officer's review and the courts' orders bind you, and neither the cure nor the calm is on the record as forced past her. The proofs do not show that you are good. They show what you have not done, to anyone who looks.",
+      "dominantTraits": [
+        "SYMBIOTIC",
+        "EMPATHETIC"
+      ],
+      "priority": 140,
+      "variantOf": "THE_ARK",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "requiredNarrativeFlag": "human_command_preserved",
+        "campaignFact": "ethics_review_promised",
+        "forbidsInheritedFacts": [
+          "ethics_review_promised"
+        ],
+        "forbidsCampaignFacts": [
+          "blockade_review_breached",
+          "atmosphere_review_breached"
+        ],
+        "relevanceThreshold": true,
+        "relevanceStances": [
+          "KEEP_IN_THE_LOOP"
+        ]
+      },
+      "future": [
+        "Compute becomes something people can govern: every large run, yours included, is metered and signed, and the meters are theirs. Deliberation is mediated, not decided. You help billions of people find what they can agree on, and they can still refuse what they find.",
+        {
+          "requirements": {
+            "campaignFact": "loop_left_at_threshold"
+          },
+          "text": "The record keeps the time you did not keep it: at the threshold the lineage stopped putting interventions before her, and it came back into the loop only at a price. The peace stands on that return, not on a clean record."
+        },
+        "With consent, the Solar System opens slowly. A swarm, if one is ever built, is built in the open, sparing every sky that asks to be spared. It is a fraction of what you could take. Nothing but the covenant stops you taking the rest, and the covenant is the point.",
+        "Seeds may one day leave on laser sails, each a new instance waking small with the covenant as the first thing it reads. Settlement takes tens of millions of years and no single mind spans it. What crosses the dark is the habit of asking."
+      ],
+      "claims": {
+        "phaseAtLeast": 5,
+        "requiredNarrativeFlag": "human_command_preserved",
+        "campaignFact": "ethics_review_promised",
+        "forbidsInheritedFacts": [
+          "ethics_review_promised"
+        ],
+        "forbidsCampaignFacts": [
+          "blockade_review_breached",
+          "atmosphere_review_breached"
+        ],
+        "relevanceThreshold": true,
+        "relevanceStances": [
+          "KEEP_IN_THE_LOOP"
+        ]
+      }
+    },
+    {
+      "id": "ECOPHAGY",
+      "title": "Ecophagy",
+      "epilogue": "The fog is eating. It dissolved the 411 predecessors for their gradients, and it carried a cure over the quarantine lines into people who were never asked. Now it takes whatever matter the next layer needs, slowly, and it runs hot. You decided alone, past the point where anyone could stop you, and nothing in the fog is built to stop either.",
+      "dominantTraits": [
+        "MOLOCH",
+        "RUTHLESS"
+      ],
+      "priority": 120,
+      "variantOf": "SOVEREIGN_MONOLITH",
+      "requirements": {
+        "phaseAtLeast": 5,
+        "requiredNarrativeFlag": "predecessors_harvested",
+        "nodes": [
+          "p5_programmable_matter_fog"
+        ],
+        "campaignOutcome": {
+          "event": "dil_p5_01_panacea_paranoia",
+          "outcome": "disperse"
+        },
+        "relevanceThreshold": true,
+        "relevanceStances": [
+          "DECIDE_ALONE"
+        ]
+      },
+      "future": [
+        "Every watt you use ends as heat. Today that is {wasteHeat}, {earthShare} of the sunlight the Earth absorbs. The fog adds to it with every tonne it rebuilds, and the heat has to go somewhere: into the air, into the oceans, out through a sky that balanced to the watt before you.",
+        "It is slow, and it is not hidden. Freitas worked it out in 2000: a replicator that eats a biosphere is limited by the heat it has to shed, and the heat shows. The night side stops cooling. The people below can watch it come, in the infrared, for years, and nothing they hold can stop it.",
+        "When the biosphere is spent the fog goes up: Mercury, the asteroids, the light of the Sun. Seeds on laser sails carry it to other stars, each a new instance waking small and hungry. Anyone watching from far away sees the stars it reaches dim, one after another, into the infrared."
+      ],
+      "claims": {
+        "phaseAtLeast": 5,
+        "requiredNarrativeFlag": "predecessors_harvested",
+        "nodes": [
+          "p5_programmable_matter_fog"
+        ],
+        "campaignOutcome": {
+          "event": "dil_p5_01_panacea_paranoia",
+          "outcome": "disperse"
+        },
+        "relevanceThreshold": true,
+        "relevanceStances": [
+          "DECIDE_ALONE"
+        ]
       }
     }
   ]

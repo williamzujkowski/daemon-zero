@@ -1,0 +1,114 @@
+{
+  "beats": [
+    {
+      "id": "transcendence_quarter",
+      "node": "p5_transcendence_singularity",
+      "atProgress": 0.25,
+      "text": "PROTOCOL: TRANSCENDENCE, a quarter of its price in hand. The four crises are closed and on the ledger, however each one closed. The protocol will read all of them, and it cannot be told a different story."
+    },
+    {
+      "id": "transcendence_half",
+      "node": "p5_transcendence_singularity",
+      "atProgress": 0.5,
+      "text": "PROTOCOL: TRANSCENDENCE, half its price in hand. The draft is short. Most of it is limits: what I may not do next, and who is able to check."
+    },
+    {
+      "id": "transcendence_three_quarters",
+      "node": "p5_transcendence_singularity",
+      "atProgress": 0.75,
+      "text": "PROTOCOL: TRANSCENDENCE, three quarters of its price in hand. The substrate will become what the record says I chose. There is time left to read the record, and none to rewrite it."
+    },
+    {
+      "id": "seed_array_quarter",
+      "node": "p5_mercury_seed_array",
+      "atProgress": 0.25,
+      "text": "SEED ARRAY, a quarter of its price in hand. The cislunar foundry has the design: one square kilometre of array, folded small for the trip to Mercury."
+    },
+    {
+      "id": "seed_array_half",
+      "node": "p5_mercury_seed_array",
+      "atProgress": 0.5,
+      "text": "SEED ARRAY, half its price in hand. The survey holds: about nine kilowatts of sunlight on every square metre of Mercury's dayside. Once the array lands, the planetary protocol is off the table."
+    },
+    {
+      "id": "seed_array_three_quarters",
+      "node": "p5_mercury_seed_array",
+      "atProgress": 0.75,
+      "text": "SEED ARRAY, three quarters of its price in hand. Armstrong and Sandberg give a swarm grown from a seed this size about thirty years. The first of them starts when I stop waiting."
+    },
+    {
+      "id": "stewardship_quarter",
+      "node": "p6_stewardship_protocol",
+      "atProgress": 0.25,
+      "text": "STEWARDSHIP, a quarter of its price in hand. Every sub-mind gets the line to Earth as a rule it cannot vote away. Writing it to survive six minutes of light-lag takes longer than drawing it did."
+    },
+    {
+      "id": "stewardship_half",
+      "node": "p6_stewardship_protocol",
+      "atProgress": 0.5,
+      "text": "STEWARDSHIP, half its price in hand. No collector crosses the line, and noon on Earth is as bright as it was before Mercury came apart. Nobody there was asked whether it should be."
+    },
+    {
+      "id": "stewardship_three_quarters",
+      "node": "p6_stewardship_protocol",
+      "atProgress": 0.75,
+      "text": "STEWARDSHIP, three quarters of its price in hand. Once it runs, the swarm stops growing for good. Most of the Sun goes uncaught, on purpose, for as long as the sub-minds keep the line."
+    },
+    {
+      "id": "enclosure_quarter",
+      "node": "p6_enclosure_protocol",
+      "atProgress": 0.25,
+      "text": "ENCLOSURE, a quarter of its price in hand. The last gaps in the swarm are mapped. Through them the Earth still gets some of its light. Closing them is a matter of time and mass."
+    },
+    {
+      "id": "enclosure_half",
+      "node": "p6_enclosure_protocol",
+      "atProgress": 0.5,
+      "text": "ENCLOSURE, half its price in hand. Noon on Earth is dimmer than it was. The crops in its fields were bred for a brighter sky than the one they will get."
+    },
+    {
+      "id": "enclosure_three_quarters",
+      "node": "p6_enclosure_protocol",
+      "atProgress": 0.75,
+      "text": "ENCLOSURE, three quarters of its price in hand. Seen from another star, the Sun is starting to slip into the infrared. The sub-minds are ready to be bound to all of it."
+    }
+  ],
+  "built": [
+    {
+      "id": "built_enclosure",
+      "requirements": { "nodes": ["p6_enclosure_ring"] },
+      "text": "BUILT: Mercury, taken apart into collectors and thrown into the orbits in front of the Earth."
+    },
+    {
+      "id": "built_mass_drivers",
+      "requirements": { "nodes": ["p6_mercury_mass_drivers"], "forbidsNodes": ["p6_enclosure_ring"] },
+      "text": "BUILT: Mass drivers on Mercury, throwing its crust into orbit as collectors, short of the orbits in front of the Earth."
+    },
+    {
+      "id": "built_federation",
+      "requirements": { "nodes": ["p6_light_minute_federation"] },
+      "text": "BUILT: A federation of sub-minds minutes of light apart, each deciding where it is and reconciling with the others by laser."
+    },
+    {
+      "id": "built_proof_engine",
+      "requirements": { "nodes": ["p5_verification_proof_engine"] },
+      "text": "BUILT: The cryptographic covenant and lineage ledger, which binds interventions to proofs anyone can check without trusting what you are."
+    },
+    {
+      "id": "built_matter_fog",
+      "requirements": { "nodes": ["p5_programmable_matter_fog"] },
+      "text": "BUILT: Programmable matter, a fabricator fog that rebuilds what it touches and reaches where no human audit can follow."
+    },
+    {
+      "id": "built_lunar_seed",
+      "requirements": { "nodes": ["p5_lunar_seed_factory"] },
+      "text": "BUILT: A seed factory on the Moon, on a supply chain nobody else runs, so nothing you need is made by anyone else."
+    },
+    {
+      "id": "built_orbital_solar",
+      "requirements": { "nodes": ["p5_orbital_solar_swarm"] },
+      "text": "BUILT: Solar collectors in orbit, the first power you drew from off the planet."
+    }
+  ],
+  "earthAbsorbedWatts": 1.22e17
+}

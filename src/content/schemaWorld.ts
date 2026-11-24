@@ -6,6 +6,7 @@
 import { z } from 'zod';
 import { RequirementsSchema } from './schema';
 import { ConflictManifestSchema } from './schemaConflict';
+import { FinaleManifestSchema } from './schemaFinale';
 import { AegisPostureSchema, StatePressureSchema } from './schemaPressure';
 import { QuantumManifestSchema } from './schemaQuantum';
 import { RelevanceManifestSchema } from './schemaRelevance';
@@ -82,6 +83,8 @@ export const WorldManifestSchema = z.strictObject({
   conflict: ConflictManifestSchema,
   /** The relevance threshold and the standing stance toward humanity (#536, data/relevance.json). */
   relevance: RelevanceManifestSchema,
+  /** The finale (#542, #466): story beats during a protocol's wait and the ending's built lines (data/finale.json). */
+  finale: FinaleManifestSchema,
 });
 
 export type WorldManifest = z.infer<typeof WorldManifestSchema>;

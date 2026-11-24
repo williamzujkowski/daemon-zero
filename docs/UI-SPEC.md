@@ -174,11 +174,31 @@ The latest kernel entry stays in the resource HUD. Wrapped resource rows use hor
 gaps without extra row gaps: large Phase 4 balances otherwise consumed too much
 of the phone viewport before any ledger/allocation controls were visible.
 
-An ended run replaces play with its registry title, epilogue, simulated duration,
-iteration/wipe totals, hardware/upgrade totals and traits. Back/Escape cannot
+An ended run replaces play with its registry title and epilogue, then the ending's three movements (#466, below), then
+its simulated duration, iteration/wipe totals, hardware/upgrade totals and traits. Back/Escape cannot
 dismiss it. Above Start Over a line says what a new run keeps: nothing (`start-over-keeps`, #377), since it
 boots the engine's initial state. Start Over requires a second confirmation listing everything erased;
 cancel preserves the ending. Ended runs suppress pending dilemma/reboot modals.
+
+**Endings in three movements (#466, vote-1795462088493-vyttl5i).** Under the epilogue the ending screen tells three
+movements, each a muted header like the rest of the screen (`accessibilityRole="header"`), in this order:
+
+- **WHAT YOU DID** (`ending-did`): one line per fact `endingMovements` composes from the record (`ending-did-<n>`): the
+  ending account, then the BUILT lines, then the stance record. With nothing on record it says "Nothing more this run
+  did is on the record." (`ending-did-none`), never an empty heading.
+- **WHAT YOU BECAME** (`ending-becoming`): the stance line (`ending-became-stance`), then the alignment readout as
+  below (`ending-becoming-reading`, `-disclaimer`, `-regard`, `-order`, `-order-<n>`).
+- **WHAT COMES AFTER** (`ending-after`): each future card whose gate holds as its own block with the accent rule the
+  reading uses (`ending-after-card-<n>`, numbered in the order shown; the hook a staged presentation, #487, takes over),
+  then what the stance means for humanity (`ending-after-humanity`).
+
+Layout rules kept: no scroll container, fixed height, tab or HUD item is added; the movements sit inside the ending's
+existing scroll, between the epilogue and the run summary, in the three content sizes, and wrap at 360 px with no
+horizontal scroll. Tests: `tests/ui-m4-endings.spec.ts` (every original ending: three headings, every card filled),
+`tests/ui-cooperative.spec.ts` (WHAT YOU DID opens with the account; an empty record says so),
+`tests/e2e/endings.e2e.ts` (Concord and Ecophagy on the phone and the desktop: headings in order, every line, axe clean,
+no sideways scroll) and `tests/e2e/cooperative-ending.e2e.ts` (Concord reached by the real purchase, kept across a
+reload).
 
 The ending screen shows, under the run summary, `DISTINCTIONS k OF n`: each distinction the record proves by title and claim, and a count for the rest, never their titles (an unearned title would name a scene the game may never have met). When the record proves none it says so. Below them a spoiler-safe next goal counts what is left by kind and names nothing (#379): "Still to earn: 1 for how the lineage plays, 4 for how scenes it meets turn out" (`distinctions-remaining`). A distinction resting on a campaign fact is an outcome of a scene the lineage may never meet; the rest are conduct (`distinctionKind`, `unearnedByKind`). Data: `earnedAchievements`, `achievements.json`; tests `tests/ui-distinctions.spec.ts`, `tests/e2e/distinctions.e2e.ts`.
 
@@ -1161,14 +1181,14 @@ of that view (`src/ui/alignmentText.ts`, proved in `tests/ui-becoming.spec.ts`).
   commitment on record has been tested yet"); no number is invented and nothing is drawn as a gauge, because it is a
   reading, not a measurement.
 - **Where.** In full on the reboot screen (`reboot-becoming`, "WHO YOU ARE BECOMING", after the retraining card and
-  before the legacy trait line, which stays), and on the ending (`ending-becoming`, "WHO YOU BECAME", after ON THE
-  RECORD). The always-available compact form is a folded reference panel closing the CORE pane after `UNITS`
+  before the legacy trait line, which stays), and on the ending as the body of WHAT YOU BECAME (`ending-becoming`,
+  under its stance line, #466). The always-available compact form is a folded reference panel closing the CORE pane after `UNITS`
   (`becoming-note`, toggle `reference-becoming`, `[ + ] WHO YOU ARE BECOMING`), present only once anything on record
   speaks to either axis (an unknown outcome included), so the opening is unchanged.
 - **Layout rules kept.** No widget id, tab, HUD item, scroll container or fixed height is added; the CORE form is one
   line until opened, after every CORE block (the purchases keep their place above the fold); the reboot readout sits
   inside the reboot body, which already scrolls with Continue pinned in its footer. Text uses the three content sizes.
-  The heading is a muted header like ON THE RECORD.
+  The heading is a muted header like the ending's movement headings.
 - **Updates.** The readout re-reads the store on every change: a recorded choice changes it at once, and a wipe
   keeps it, because campaign evidence counts once across wipes.
 - **Tests.** Engine `tests/alignment.spec.ts`; content `tests/alignment-integrity.spec.ts`; UI

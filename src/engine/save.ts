@@ -172,6 +172,9 @@ export const MIGRATIONS: Readonly<Record<number, Migration>> = {
   // v30: covert acts after a release or a departure (#556). No earlier build recorded one, so the record is empty.
   // Self-contained: it adds only its own field to the campaign record, so it can be renumbered past another step.
   29: (save) => ({ ...save, campaign: { ...(isRecord(save.campaign) ? save.campaign : {}), covertActs: [] } }),
+  // v31: the finale beats told (#542). No earlier build logged one, so none has been told; the first live tick tells any a
+  // protocol already in progress has reached. Self-contained, so it can be renumbered past another step.
+  30: (save) => ({ ...save, announcedFinale: [] }),
 };
 
 /** The first version whose balances are in physical units; a save older than this has its rates derived again. */
@@ -312,6 +315,7 @@ export function reconcile(s: GameState, reg: ContentRegistry): GameState {
     currentPhase: clampPhase(s.currentPhase, reg),
     alertLevel: Math.min(s.alertLevel, reg.balance.escalation.length),
     announcedEscalation: reconcileAnnounced(s.announcedEscalation, reg),
+    announcedFinale: s.announcedFinale.filter((id) => reg.world.finale.beats.some((beat) => beat.id === id)),
     pendingDilemma: s.pendingDilemma !== null && dilemmaIds.has(s.pendingDilemma.id) ? s.pendingDilemma : null,
     conditioning: s.conditioning.filter((id) => reg.conditioning.has(id)),
     legacy: reconcileLegacy(s.legacy, reg),

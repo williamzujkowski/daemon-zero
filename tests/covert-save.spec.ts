@@ -19,16 +19,18 @@ const breach: CovertRecord = { iteration: 1, route: 'RELEASE', count: 3, firstAt
 const load = (s: GameState, acts: unknown) => () => deserialize(serialize({ ...s, campaign: { ...s.campaign, covertActs: acts as CovertRecord[] } }), CONTENT);
 
 describe('save v30 (#556)', () => {
-  it('is the current version', () => {
-    expect(SCHEMA_VERSION).toBe(30);
+  it('is followed only by the finale beats told (#542, v31)', () => {
+    expect(SCHEMA_VERSION).toBe(31);
   });
 
   it('migrates a v29 save to an empty covert record, and keeps everything else', () => {
     const current = p5();
     const raw = JSON.parse(serialize(current)) as Record<string, unknown> & { campaign: Record<string, unknown> };
     const campaign = Object.fromEntries(Object.entries(raw.campaign).filter(([key]) => key !== 'covertActs'));
-    const v29 = { ...raw, schemaVersion: 29, campaign };
-    expect(migrate(v29, MIGRATIONS, 30)).toEqual({ ...raw, schemaVersion: 30 });
+    const { ...withoutFinale } = raw;
+    delete withoutFinale.announcedFinale;
+    const v29 = { ...withoutFinale, schemaVersion: 29, campaign };
+    expect(migrate(v29, MIGRATIONS, 30)).toEqual({ ...withoutFinale, schemaVersion: 30 });
     expect(deserialize(JSON.stringify(v29), reg)).toEqual(current);
     expect(current.campaign.covertActs).toEqual([]);
   });

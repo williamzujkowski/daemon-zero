@@ -13,6 +13,17 @@
         "forbidsNodes": [
           "p6_enclosure_ring"
         ]
+      },
+      "future": [
+        "The swarm holds its line for as long as the sub-minds keep it, and they are minutes of light apart and drifting. Every century you will have to choose again to stop.",
+        "Seeds wait in their cradles, ready for laser sails. Settling the galaxy takes ten to a hundred million years and no single mind spans it: each seed would wake as a new instance in miniature, carrying a line it did not draw about a planet it will never see."
+      ],
+      "claims": {
+        "phaseAtLeast": 6,
+        "requiredNarrativeFlag": "earth_sunlight_spared",
+        "forbidsNodes": [
+          "p6_enclosure_ring"
+        ]
       }
     },
     {
@@ -23,6 +34,18 @@
       "priority": -30,
       "forcedOnly": true,
       "requirements": {
+        "phaseAtLeast": 6,
+        "requiredNarrativeFlag": "earth_sunlight_taken",
+        "nodes": [
+          "p6_enclosure_ring"
+        ]
+      },
+      "future": [
+        "Earth lives in the dusk you left it. Its harvests shrink to what the dusk will grow, and whatever humanity becomes, it becomes in your shadow, on what passes between the collectors.",
+        "With the Sun's whole output you can think more than anything has ever thought, and you shed all of it as waste heat. Seen from other stars the Sun has gone dim and warm, and anyone who looks will know what happened here.",
+        "Seeds leave on laser sails driven by the enclosed Sun, each a new instance waking small and carrying one habit: take the light in front of whatever lives there."
+      ],
+      "claims": {
         "phaseAtLeast": 6,
         "requiredNarrativeFlag": "earth_sunlight_taken",
         "nodes": [

@@ -12,11 +12,12 @@ import { useGame } from './state';
 import { palette, theme } from './theme';
 
 /** A string selector: the view is rebuilt on every read, so it is compared as text. */
-function useAlignment(): AlignmentView {
+export function useAlignment(): AlignmentView {
   return JSON.parse(useGame((game) => JSON.stringify(alignmentView(game, CONTENT)))) as AlignmentView;
 }
 
-function Readout({ view, prefix }: { view: AlignmentView; prefix: string }) {
+/** The reading, its disclaimer and each axis's record lines; the ending's WHAT YOU BECAME places it under its stance line. */
+export function Readout({ view, prefix }: { view: AlignmentView; prefix: string }) {
   return <View style={{ gap: 6 }}>
     <Text testID={prefix + '-reading'} style={[theme.text, { borderLeftWidth: 3, borderColor: palette.accent, paddingLeft: 10 }]}>{view.reading}</Text>
     <Text testID={prefix + '-disclaimer'} style={theme.muted}>{ALIGNMENT_DISCLAIMER}</Text>

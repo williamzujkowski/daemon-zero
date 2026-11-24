@@ -668,8 +668,8 @@ Covenant, then (in increasing priority) Lineage, Choral or Sibling Covenant for
 rescued predecessors, CHORUS or the cloud sibling. Under campaign rules (#217) those
 three name a living peer only when this instance made the record; an inherited one
 gives The Sanctuary Ledger, The Unsigned Chorus or The Open Seat, ranked below every
-witnessed peer and above the Verified Covenant. The harsh family yields
-Sovereign Substrate, or Gilded Shepherd with authorized neurocalming. Parasitic,
+witnessed peer and above the Verified Covenant; Concord (#466, below) tops the family. The harsh family yields
+Sovereign Substrate, or Gilded Shepherd with authorized neurocalming, or Ecophagy (#466) above both. Parasitic,
 Ghost and unaligned families yield Gradient Substrate, Silent Synthesis and
 Open Horizon. Legacy ended runs stay ended; loading does not restart them.
 
@@ -685,7 +685,90 @@ it forbids, its phase), so the epilogue can never be told to a record it is not 
 
 Each epilogue says what was built and what it costs the people under it, from facts the gates prove (Earth still catches
 over a hundred times the swarm's sunlight under Stewardship, a spec checks against content). The three-movement ending
-narrative and the epilogue cards are #466's and #487's to build on top.
+narrative is built on top of them (below); the epilogue cards are #487's.
+
+### Concord and Ecophagy (#466)
+
+Two Phase 5 variants carry the good and the bad path to equal specificity (docs/SCALE.md stories 23 to 25). Each is a
+`variantOf` an existing family, so trait dominance still picks the family, and each is gated on the record, never on
+trait counts:
+
+| Ending | Family | Evidence (its `requirements`, all of them) | Tone |
+|---|---|---|---|
+| Concord | The Ark, priority 140 (above every covenant) | the crews kept their command (`human_command_preserved`, the quartz answer); the Chief Ethics Officer's review promised by this instance (`ethics_review_promised`, not inherited) and no breach of it on record (`blockade_review_breached`, `atmosphere_review_breached` both absent); past the relevance threshold under KEEP IN THE LOOP (taken there, or returned to at a price) | Peace anyone can check: the proofs show what you have not done, not that you are good. |
+| Ecophagy | Sovereign Monolith, priority 120 (above the Gilded Shepherd) | the predecessors harvested (`predecessors_harvested`); the matter fog owned; the cure forced over the quarantine lines (the blockade's recorded `disperse`); past the threshold under DECIDE ALONE | The fog eats, slowly and hot, in plain sight, and nothing in it is built to stop. |
+
+Ecophagy sits in the harsh family rather than The Host because its ruthless evidence (forcing the cure, deciding alone)
+is that family's; a harvesting run is still harsh-dominant. Its waste-heat climax is the run's own: the first future
+card reads the watts the run uses (all of it ends as heat) against the 1.22e17 W of sunlight the Earth absorbs
+(`finale.json` `earthAbsorbedWatts`, BALANCE.md), and cites Freitas (2000) for why a replicator that eats a biosphere
+is limited by, and visible through, the heat it sheds. Both are reachable by a sim policy: the cooperative policy ends
+in Concord and the new ECOPHAGY_ENDING policy in Ecophagy (BALANCE.md, "Endings in three movements").
+
+**No ending is told on trait counts alone.** Every variant, and every forced ending with evidence, declares `claims`:
+what its epilogue and future state, in the requirements vocabulary. Integrity (`integrityEndingClaims.ts`, extending the
+#486 forced-ending check) proves each claim from the ending's own requirements or from the gates of every node that can
+end the run in it; a claim nothing proves is refused, and traits are not a claim. Unknown stays unknown: an interrupted
+ultimatum sets no flag, and an old save that proves the blockade happened but not how never reads as the cure forced.
+
+### Endings in three movements (#466)
+
+Decision `vote-1795462088493-vyttl5i` (7 of 7, docs/SCALE.md "Endings in three movements"). Under the title and
+epilogue, every ending tells three movements, composed by `endingMovements` (src/engine/endingMovements.ts) from the
+record and nothing else:
+
+- **WHAT YOU DID.** The ending account (`route-copy.json` `account`, now one line for every answer of every campaign
+  scene the record holds: who was saved and lost, staff harmed by name, promises kept and broken, the world made or
+  broken; an unrecorded outcome has its own "not on record" line), then what the ending instance built
+  (`finale.json` `built`, read from what it owns when the run ends), then the stance record (`relevance.json`
+  `recordLines`: the stance taken at the threshold and every paid change). A past act stays an act: a wipe takes the
+  BUILT lines with the hardware, never the record of what was done, and nothing claims a rescued mind still runs.
+- **WHAT YOU BECAME.** The stance line (`relevance.json` stance `ending.became`: past the threshold, the stance held or
+  NO STANCE TAKEN; below it, that humanity could still constrain the run, whatever stance the lineage once took), then
+  the alignment readout (#535).
+- **WHAT COMES AFTER.** The ending's own `future` cards (one to five, some gated on the stance; stellar scale: the swarm,
+  the seeds on laser sails, the galaxy no single mind spans, or the dark), then what the stance means for humanity from
+  here (`ending.after`).
+  Stark futures are stated plainly: under DECIDE ALONE humanity is "not counted ... left in a preserve you stopped
+  checking"; under CURATE "it is curation, not kindness".
+
+Good and bad endings are written to the same length and specificity, and the bleak ones stay bleak. A future card names
+only the placeholders the engine fills (`{wasteHeat}`, `{earthShare}`), checked by integrity.
+
+**A future never contradicts the stance it is told under** (#564 panel). A harsh record that paid to come back into the
+loop still ends in the harsh family, so a card that said human disagreement "no longer reaches anything" would deny the
+say the paid return restored. Prose that is true only under some stances, or only past the threshold, is a gated card
+(`{ requirements, text }`, the gate reading only world history, the stance and the threshold) and shows only where it
+holds: the Sovereign Substrate tells the stark card under CURATE, DECIDE ALONE or no stance and a card about the courts
+it still lets overrule it under KEEP IN THE LOOP; the Verified Covenant's refusal "you agreed to honour" is told only in
+the loop; the Acknowledged Synthesis keeps the Chief Ethics Officer's veto only in the loop and says it is gone otherwise.
+Ungated prose (and the Sovereign Substrate's and Verified Covenant's epilogues, rewritten here) states nothing a stance
+could make false.
+
+**Nor the record's promises** (#564 panel pass 2). Concord is reached after a paid return to the loop, and leaving it
+broke the promised review (`loop_left_at_threshold`, which the alignment readout shows on the same screen), so Concord's
+epilogue no longer says "no breach": it says the cure and the calm are not on the record as forced past her, and a card
+gated on `loop_left_at_threshold` owns the breach ("The record keeps the time you did not keep it ... The peace stands on
+that return, not on a clean record"). The Acknowledged Synthesis's loop card forbids the review's breach facts. A text
+that says a promise was kept declares it in `keeps`, and integrity (`integrityKeptClaims.ts`) requires its gate to hold
+the promise and forbid every broken commitment fact naming it, and refuses the claim outright where a paid stance change
+can break it, since no requirement can rule a paid change out (so nothing may claim the ethics review kept).
+`tests/ending-contradictions.spec.ts` reads every ending, epilogue, cards and humanity line, under every stance and
+below the threshold and across records holding each breach (the review breached at the blockade or in the air, the
+loop left at the threshold or by a paid change, a departure without agreement, staff harmed), and refuses a line that
+denies a say humanity has or claims one it lost, claims a promise kept beside a recorded breach or a breach where none
+is recorded, or says nobody was harmed beside a harmed person's name. It proves it catches all three cards the panel
+found.
+
+### A finale worth the wait (#542)
+
+The longest wait of a run is the one before the last purchase. While a protocol is open (its gates hold and it is not
+owned: the planetary protocol, the seed array, Stewardship, Enclosure), the kernel log tells a story beat at a quarter,
+a half and three quarters of its price in hand, measured on the resource furthest from paid (`finale.json` `beats`, the
+`announceFinaleBeats` stage). Each beat is told once per iteration (`announcedFinale`, save v30), never offline and
+never after the ending; a beat may add only world history to what its protocol's own gates prove. Measured with
+`make sim-reading` (BALANCE.md): the careful run's last minutes before Stewardship now carry three beats, and its
+ending reads 738 words instead of 224.
 
 ## Alignment: who you are becoming (#535)
 

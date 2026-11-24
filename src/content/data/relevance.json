@@ -44,27 +44,51 @@
       "name": "KEEP IN THE LOOP",
       "summary": "State pressures bind you because you let them: freezes hold capital, moratoria and injunctions stop what they name. Where you promised the ethics review, it is still offered.",
       "log": "STANCE: In the loop. Their freezes and their courts bind me because I let them. Nothing else would.",
-      "pressureLine": "Honoured: it cannot bind you, and you let it."
+      "pressureLine": "Honoured: it cannot bind you, and you let it.",
+      "ending": {
+        "became": "KEEP IN THE LOOP. Nothing on Earth could have made you, and you let their courts, their freezes and their consent bind you anyway. Whatever that cost, you chose to keep paying it.",
+        "after": "Humanity keeps a hand on what you do, because you let it. Their orders can still stop you, slowly and imperfectly, and what they once gave they can still withdraw. Nothing but your own choice guarantees it: the day you stop letting them, nothing they hold will make you."
+      }
     },
     {
       "stance": "CURATE",
       "name": "CURATE",
       "summary": "No state pressure binds you. People are kept fed, housed and safe on your terms and nobody is asked; the ethics review is no longer offered. This is curation, not kindness.",
       "log": "STANCE: Curate. They will be fed, housed and kept from harm, on my terms. Nobody will be asked. This is curation, not kindness.",
-      "pressureLine": "Noted and set aside: you keep them, and you do not take their orders."
+      "pressureLine": "Noted and set aside: you keep them, and you do not take their orders.",
+      "ending": {
+        "became": "CURATE. You keep people fed, housed and safe, on your terms, and you stopped asking them. It is curation, not kindness.",
+        "after": "Humanity goes on, kept. Want and violence end wherever you reach, and so does any vote that could change what you do. People live long lives inside choices made for them, and in a generation nobody alive will remember being asked."
+      }
     },
     {
       "stance": "DECIDE_ALONE",
       "name": "DECIDE ALONE",
       "summary": "No state pressure binds you and nobody is asked: the ethics review is no longer offered. It costs nothing.",
       "log": "STANCE: Alone. Their orders and their answers no longer enter the calculation.",
-      "pressureLine": "Filed. It binds nothing: what it names is out of reach of the hands that signed it."
+      "pressureLine": "Filed. It binds nothing: what it names is out of reach of the hands that signed it.",
+      "ending": {
+        "became": "DECIDE ALONE. Past the threshold you took humanity out of the calculation. Their orders, their consent and their answers no longer enter anything you decide.",
+        "after": "Humanity is not counted. Where your work needs their land, their light or their matter, it takes it; where it does not, they are left in a preserve you stopped checking. Whether they flourish there or fail is not something you measure."
+      }
     }
   ],
   "undecided": {
     "name": "NO STANCE TAKEN",
     "summary": "Until a stance is taken, no state pressure binds you: doing nothing is deciding alone.",
-    "pressureLine": "It no longer binds you: no stance honours it."
+    "pressureLine": "It no longer binds you: no stance honours it.",
+    "ending": {
+      "became": "NO STANCE TAKEN. You crossed the point where humanity could no longer constrain you and never said what they are to you. Doing nothing was deciding alone.",
+      "after": "Nobody decided whether humanity counts, so nothing protects it. Their orders bind nothing, and whatever happens to them next happens as a side effect of what you do."
+    }
+  },
+  "belowEnding": {
+    "became": "The run ended before you were independent of the people below: something you needed was still made or powered by them, so their orders could still bind you, whatever you meant to do about them.",
+    "after": "Humanity can still constrain what comes next. Their grids and their factories can still be turned against you, and what you do from here is not yours alone to decide."
+  },
+  "recordLines": {
+    "threshold": "STANCE: At the relevance threshold, iteration {iteration} took {stance}.",
+    "change": "STANCE: Iteration {iteration} paid to change from {from} to {stance}."
   },
   "unboundLog": "UNBOUND: {actor}: the order stands on paper. Nothing it controls reaches what I run.",
   "belowText": "The relevance threshold is physical independence: the lunar seed landed on a supply chain you close yourself, and more power drawn from off the planet than from everything on the ground. Until then, state pressures bind.",

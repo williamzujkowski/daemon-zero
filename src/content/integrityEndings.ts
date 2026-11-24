@@ -1,8 +1,11 @@
 /**
  * Variant endings refine a trait family without changing the family's dominance or tie-break. A forced ending (a node's
  * forcesEnding) that states evidence in its requirements is reached only through gates that already prove it (#486), so
- * its epilogue can never be told to a record it is not true of.
+ * its epilogue can never be told to a record it is not true of; every ending's stated claims are proven the same way
+ * (#466, integrityEndingClaims.ts).
  */
+import { checkEndingClaims, checkFutureGates, checkFuturePlaceholders } from './integrityEndingClaims';
+import { checkKeptClaims } from './integrityKeptClaims';
 import type { ContentRegistry, RegistryNode } from './registry';
 import type { Requirements } from './schema';
 
@@ -17,7 +20,8 @@ export function checkEndingVariants(reg: ContentRegistry): string[] {
     if (parent && ending.dominantTraits.join() !== parent.dominantTraits.join()) problems.push(`${ending.id}: variant must keep parent traits`);
     if (reg.endings.some((other) => other.id !== ending.id && other.variantOf === ending.variantOf && other.priority === ending.priority)) problems.push(`${ending.id}: variant priorities must be unique within a family`);
   }
-  return [...problems, ...checkForcedEvidence(reg)];
+  return [...problems, ...checkForcedEvidence(reg), ...checkEndingClaims(reg, unproven), ...checkFuturePlaceholders(reg),
+    ...checkFutureGates(reg), ...checkKeptClaims(reg)];
 }
 
 /** Every node a purchase of `node` implies is owned: itself, what it names in `nodes`, and its prerequisites, transitively. */

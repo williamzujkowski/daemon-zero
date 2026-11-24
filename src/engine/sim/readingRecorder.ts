@@ -14,7 +14,8 @@ import { logLineText } from '../logQuery';
 import { aegisPostureView } from '../pressureQuery';
 import { isNodePending, shownRepeatables } from '../purchaseQuery';
 import { raidView } from '../raidQuery';
-import { choiceText, endingAccount, nodeText } from '../routeCopy';
+import { endingMovements } from '../endingMovements';
+import { choiceText, nodeText } from '../routeCopy';
 import { dilemmaContext, eligibleAmbientSpeech, isChoiceOffered, nodeBlindDescription, recordedTransmissions } from '../speechQuery';
 import type { GameState } from '../state';
 import { swarmView, wildEncounterView } from '../swarmQuery';
@@ -171,8 +172,12 @@ export class ReadingRecorder {
     }
   }
 
+  /** The ending screen's story (#466): title, epilogue and the three movements, the alignment reading included. */
   ending(s: GameState): void {
     const ending = this.reg.endings.find((entry) => entry.id === s.ending);
-    if (ending) this.emit(s, 'ending', 'A', ending.id, [ending.title, ending.epilogue, ...endingAccount(s, this.reg)].join('\n'));
+    if (!ending) return;
+    const m = endingMovements(s, ending, this.reg);
+    const parts = [ending.title, ending.epilogue, ...m.did, m.stance, alignmentView(s, this.reg).reading, ...m.cards, m.humanity];
+    this.emit(s, 'ending', 'A', ending.id, parts.join('\n'));
   }
 }
