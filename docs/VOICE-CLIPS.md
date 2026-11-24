@@ -75,7 +75,11 @@ constants and the bytes are in [PROVENANCE.md](../assets/audio/voice/PROVENANCE.
 `tests/audio-assets.spec.ts` pins every number. In short: each narrow rung keeps under 1.5% of its
 spectrum past its own edge, and above 7 kHz the vibration, phone and stream rungs carry about 1% or
 less where the broadcast, direct and peer rungs carry 6.6% or more. **Nobody has listened to any
-rung.**
+rung**, with one exception: on 2026-11-24 the maintainer listened to the 14 clips added on
+2026-11-23 and 2026-11-24 and reported that they sound fine. Those are the stream rung's `forum_11` to `forum_14`
+(#544, the Phase 3 beat) and the world feed's `world_14` to `world_23` (#536, the stance lines).
+Every other clip is still unheard by a person; the automated level and band checks are the only
+evidence for them.
 
 **The clean tier.** `clean/` still holds the model's own take of every host line and record,
 unbundled: nothing imports it. It was generated for an "acoustic upgrade" that a nexus vote
