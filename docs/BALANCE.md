@@ -2055,23 +2055,24 @@ campaign rules it ends at 9913.5 s (was 10099.4), with one dilemma moving from P
 
 **Since #541** (a quieter kernel log, vote-1795470658719-k1h556n package A, C2) repeated hires and releases on one track
 merge into one counted line, and a wild or channel mind's request is joined to its outcome (UI-SPEC.md, "A quieter
-kernel log"). The run is the same run: no content number, bot rule or gate changed, and the sim's phase times, victory,
-wipes and dilemmas are identical; only the log moved. The report reads the merged log the UI shows: a tallied line is a
-line already read moving up with a higher count, so it is not a new line, and a joined line adds only its outcome's
-words. Measured on the branch against `e566b2f`:
+kernel log"). The run is the same run: no content number, bot rule or gate changed, and with the log and the save
+version left out the STEALTH and GREEDY reports hash identically before and after; only the log moved. The report reads
+the merged log the UI shows: a tallied line is a line already read moving up with a higher count, so it is not a new
+line, and a joined line adds only its outcome's words. Measured against `887d000` (#519 merged), before and after:
 
 | | Legacy before | Legacy after | Campaign before | Campaign after |
 |---|---|---|---|---|
-| Log bursts, all phases | 39 | 12 | 44 | 20 |
-| Log bursts, Phase 4 | 19 | 5 | 22 | 10 |
-| Over-full windows 60 s / 30 s / 10 s, all phases | 86 / 166 / 395 | 53 / 119 / 318 | 92 / 188 / 410 | 56 / 137 / 329 |
-| Over-full windows 60 s, Phase 4 / Phase 5 | 49 / 26 | 24 / 20 | 42 / 39 | 10 / 37 |
-| Log repeat words | 4429 | 3015 | 4350 | 3000 |
-| Forced reading min at 238 wpm | 41.1 | 41.1 | 42.1 | 42.1 |
-| Human high model min | 275.1 | 268.0 | 268.7 | 262.0 |
+| Log bursts, all phases | 50 | 20 | 46 | 20 |
+| Log bursts, Phase 4 | 26 | 10 | 19 | 7 |
+| Over-full windows 60 s / 30 s / 10 s, all phases | 93 / 184 / 428 | 56 / 136 / 342 | 96 / 189 / 415 | 64 / 141 / 332 |
+| Over-full windows 60 s, Phase 4 / Phase 5 | 58 / 24 | 28 / 19 | 42 / 43 | 13 / 42 |
+| Log repeat words | 4476 | 3054 | 4342 | 2992 |
+| Forced reading min at 238 wpm | 45.5 | 45.5 | 45.7 | 45.7 |
+| Human high model min | 285.4 | 278.3 | 276.0 | 269.3 |
 
-Forced reading is unchanged because repeats were never forced reading; group A moved by 5 words (4585 to 4580) under
-legacy rules and not at all under campaign rules. The floor and low human models are unchanged.
+Forced reading is unchanged because repeats were never forced reading; group A moved by 5 words (4754 to 4749) under
+legacy rules and not at all under campaign rules. The floor and low human models are unchanged. The tables above
+predate #519; the before columns here are `887d000`.
 
 ## Current baseline
 
