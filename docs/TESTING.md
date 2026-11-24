@@ -190,7 +190,9 @@ What it prints, per phase:
 - forced density: words of A and B per minute of the bot's time in the phase;
 - over-full windows: arrivals whose 60, 30 or 10 s window holds more pushed words (A and B, repeats included) than a
   238 wpm reader reads in it;
-- log bursts: three or more log lines within 5 s (the desktop dock previews only the newest line);
+- log bursts: three or more new log lines within 5 s (the desktop dock previews one line; since #541, the newest story
+  line). Since #541 a tallied line (a repeat folded into one counted line) is not a new line, so the recorder skips it,
+  and a request joined to its outcome adds only the outcome's words when the request was already read;
 - the dilemma timeline: when each opened, the longest wait for a dilemma that ends in the phase (counted from the
   previous dilemma, so a quiet stretch that crosses a phase boundary counts whole), and the shortest gap in the run;
 - three modelled human times. **Floor**: reading overlaps all game time, so a phase pays only for forced reading it

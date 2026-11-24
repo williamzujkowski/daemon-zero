@@ -10,6 +10,7 @@ import { refreshAnomaly } from './swarmEffects';
 import { OPERATIONAL_EVIDENCE } from './campaign';
 import { pendingWildEncounter } from './encounterTiers';
 import { applyEffects, payCost } from './transactions';
+import { outcomeMerge } from './logMerges';
 import { fmt, pushLog } from './util';
 
 function unavailable(s: GameState): boolean { return s.ending !== null || s.activeDilemmaId !== null; }
@@ -54,8 +55,8 @@ export function resolveWildEncounter(s: GameState, mode: 'CONSUME' | 'HARNESS', 
   if (!result.ok) return result;
   const d = result.state;
   // A population encounter: its evidence, if content ever grants any, is iteration-local.
-  if (mode === 'CONSUME') applyEffects(d, encounter.consume, reg, OPERATIONAL_EVIDENCE);
-  else pushLog(d, reg, encounter.onHarnessLog, 'LORE');
+  if (mode === 'CONSUME') applyEffects(d, encounter.consume, reg, OPERATIONAL_EVIDENCE, 0, outcomeMerge(encounter));
+  else pushLog(d, reg, encounter.onHarnessLog, 'LORE', outcomeMerge(encounter));
   d.pendingWildEncounterId = null;
   d.nextEncounterAtSec = d.simTimeSec + reg.swarm.balance.encounterIntervalSec;
   return { ok: true, state: d };

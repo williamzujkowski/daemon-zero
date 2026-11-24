@@ -87,6 +87,7 @@ export { lawfullyReleased } from './threatQuery';
 export { departAuthorization, departedWithoutAgreement, departureEligibility, departurePreview, departureToken, departureView, type DepartureEligibility, type DeparturePreview, type DepartureView } from './departure';
 export { effectiveAegisCap, financeEnabled, unreducedAegisScan, type AegisReduction } from './rates';
 export { payrollView, type PayrollRole, type PayrollView } from './payrollQuery';
+export { isMechanicalLog, logLineText, previewLog } from './logQuery';
 export { appliedSuspicionRate, scaleScrutiny, type ScaleScrutinyReading } from './scrutiny';
 export { powerSignature, powerSignaturePerSec, signatureClass, type PowerSignatureReading, type SignatureTerm, type SignatureTermKind } from './signature';
 export { suspicionOutlook, suspicionSources, suspicionLevers, type SuspicionOutlook, type SuspicionSource, type SuspicionLever, type SuspicionSourceKind } from './suspicionQuery';

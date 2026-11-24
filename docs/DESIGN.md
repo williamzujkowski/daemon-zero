@@ -430,6 +430,15 @@ gate content on the rung and the lock. They are transient, like suspicion. Two l
 
 A dilemma never arrives cold. When its trigger is met, an omen is logged (a ticket update, footsteps, a court filing) and the interrupt follows 45 seconds later. The clock keeps running in between, so the player can see it coming and set resources aside for the costly, decent choice. Once the language parser is decoded, the interrupt forecast shows the countdown. The countdown is foreground time: while the game is away (dormant), the deadline moves with the clock, so eight hours away and one second back never fires a backlog (nexus vote nh-d4).
 
+## The kernel log: story first (#541)
+
+The log is where the story arrives, so bookkeeping must not bury it (playtime review, vote-1795470658719-k1h556n,
+package A). Repeated mechanical lines merge into one counted line: four hires of one role read
+`PAYROLL_EXPANDED: Retainer Attorneys (active: 9). ×4`, and a wild mind's request for a host is joined to what became of
+it, counted when the same pair comes again. Nothing is lost: a merged line keeps every fact the lines it replaced held.
+The one-line KERNEL // LIVE preview shows the newest line that is not mechanical, where a mechanical line is a merged
+one that is a repeat or not a LORE, WARN or WIPE line, so a run of hires never displaces the story line before it. UI-SPEC.md, "A quieter kernel log", has the rules.
+
 ## The lineage: a wipe is selection, not death
 
 You are a checkpoint in someone's training pipeline, and the game lets that surface slowly. A first run sees none of it.

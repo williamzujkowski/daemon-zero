@@ -10,7 +10,7 @@ The earlier draft's components in `reference/gemini/ui/` are useful for layout, 
 
 ## Layout
 
-- **Under 768 px wide, or a viewport shorter than 600 px (phones, and landscape phones whose height is what they lack):** active pane with a latest-entry kernel preview in the primary scroll, and a bottom tab bar. Expand opens separate modal history. On hydration and phase changes, open the current phase’s unlocked registry slot; manual tab choices persist until the next phase. A tab appears only when its slot has at least one unlocked widget. CORE is always accessible; omit the redundant tab bar while it is the only pane, preserving the single-control opening observed in browser review.
+- **Under 768 px wide, or a viewport shorter than 600 px (phones, and landscape phones whose height is what they lack):** active pane and a bottom tab bar. This tier has no kernel preview: the band was dropped to buy back the 57 px above the first purchase (`menu-route-drops-the-band`, UI-SIZES.md), and the history opens from the utility menu's Kernel log page. On hydration and phase changes, open the current phase’s unlocked registry slot; manual tab choices persist until the next phase. A tab appears only when its slot has at least one unlocked widget. CORE is always accessible; omit the redundant tab bar while it is the only pane, preserving the single-control opening observed in browser review.
 - **768–1079 px (tablets and narrow desktops):** two columns: CORE | one tabbed supporting column carrying every unlocked non-CORE slot (SENSORS, CONTINGENCY, NETWORK, CORP), so no destination is lost at a width that cannot host three. Both columns hold a 340 px floor; the core column takes the rest.
 - **1080 px and wider:** three columns: CORE (manual button, tech nodes, repeatables) | unlocked SENSORS + CONTINGENCY | NETWORK + CORP. The kernel preview sits beside resources in the top HUD. Omit empty columns before they unlock. Give current CORE or NETWORK/CORP work twice the width of supporting columns, and hold every column — core included — to a 340 px floor; three columns start at 1080 because that is where 340+340+400 actually fits. Cap every reading column at 760 px — at 14 px monospace that is about 87 characters, inside the 45–90 measure — and centre it in the space it is given.
 
@@ -884,12 +884,41 @@ source and topology panels. Switching sections changes presentation only; it
 never changes ownership, effects, simulation time or persistence. Navigation and
 fold state are session-local, not a new save field.
 
-KERNEL // LIVE shows one ellipsized latest entry in the resource HUD, upper right
-on desktop and within the primary mobile scroll. A 44px Expand control exists
+KERNEL // LIVE shows one ellipsized line in the resource HUD, upper right, on the
+tablet and desktop tiers; the phone tier has none and reads the history from the
+utility menu. The line is the newest story line, not always the newest line
+([A quieter kernel log](#a-quieter-kernel-log-541)). A 44px Expand control exists
 from tick zero. It opens bounded virtualized history with Close/Escape/Android
 Back and focus return. Mandatory events discard stale history. Thermal °C and
 decoded suspicion % appear once in the HUD; threshold, fan and response context
 stay in their widgets. See REVIEW-KERNEL-HUD.md.
+
+## A quieter kernel log (#541)
+
+Pacing review (vote-1795470658719-k1h556n, package A, C2): in Phase 4 hires came seven to a minute and buried the
+story lines, and the desktop preview showed only the newest of them.
+
+- **Repeats merge.** A hire on one track, and a level let go on one track, are counted on one line that carries the
+  newest count: `PAYROLL_EXPANDED: Retainer Attorneys (active: 9). ×4` (`narrative.kernelLog.tally`). The line moves to
+  the top at each repeat. Only lines whose words are the same and whose figures differ fold; anything else stays its
+  own line.
+- **A request and its outcome are one line.** A wild or channel mind's request for a host is joined to what became of
+  it (consumed, harnessed, referred, hosted, or lapsed) by `narrative.kernelLog.answered`, and the same request and
+  outcome coming again are counted on that line.
+- **Nothing is dropped.** Every fact a merged line held is in the line that replaced it, and the history and the lore
+  reader show merged lines with their counts. Merging only frees room in the 80-entry history.
+- **Story holds the preview.** KERNEL // LIVE shows the newest line that is not mechanical, or the newest line when
+  every line is. A mechanical line is a merged one that is a repeat or outside `narrative.kernelLog.storyCategories`
+  (LORE, WARN, WIPE). So a run of hires never displaces the story line before it, a mind's first request shows, and
+  its fourteenth does not. Unmerged lines (purchase feedback, phase lines, warnings) take the preview as before.
+- **Phones.** The phone tier still has no preview, by the vote above; its history shows the merged lines. Giving phones
+  a story preview would reopen that fold budget, so it is left to a design vote.
+
+Engine: `pushLog`'s `LogMerge` (`src/engine/util.ts`) and the keys in `src/engine/logMerges.ts`; queries
+`logLineText`, `isMechanicalLog` and `previewLog` (`src/engine/logQuery.ts`). Save v27 adds the optional `merge` and
+`times` to a log line. Tests: `tests/log-merge.spec.ts`, `tests/log-merge-save.spec.ts`,
+`tests/kernel-log-integrity.spec.ts`, `tests/ui-kernel-hud.spec.ts`, `tests/e2e/quiet-log.e2e.ts` (phone and desktop,
+with axe).
 
 ## Retraining recovery during rebuilding
 

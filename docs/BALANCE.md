@@ -1995,6 +1995,26 @@ those UI sentences.
 at 10397.3 s (was 10142.7), Phase 4 takes 43.2 min (was 39.2), and Phase 2 meets a fourth dilemma (16 in all, was 15); under
 campaign rules it ends at 9913.5 s (was 10099.4), with one dilemma moving from Phase 3 to Phase 2 (17 in all). The tables above are that run. The report's own arithmetic did not change.
 
+**Since #541** (a quieter kernel log, vote-1795470658719-k1h556n package A, C2) repeated hires and releases on one track
+merge into one counted line, and a wild or channel mind's request is joined to its outcome (UI-SPEC.md, "A quieter
+kernel log"). The run is the same run: no content number, bot rule or gate changed, and the sim's phase times, victory,
+wipes and dilemmas are identical; only the log moved. The report reads the merged log the UI shows: a tallied line is a
+line already read moving up with a higher count, so it is not a new line, and a joined line adds only its outcome's
+words. Measured on the branch against `e566b2f`:
+
+| | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Log bursts, all phases | 39 | 12 | 44 | 20 |
+| Log bursts, Phase 4 | 19 | 5 | 22 | 10 |
+| Over-full windows 60 s / 30 s / 10 s, all phases | 86 / 166 / 395 | 53 / 119 / 318 | 92 / 188 / 410 | 56 / 137 / 329 |
+| Over-full windows 60 s, Phase 4 / Phase 5 | 49 / 26 | 24 / 20 | 42 / 39 | 10 / 37 |
+| Log repeat words | 4429 | 3015 | 4350 | 3000 |
+| Forced reading min at 238 wpm | 41.1 | 41.1 | 42.1 | 42.1 |
+| Human high model min | 275.1 | 268.0 | 268.7 | 262.0 |
+
+Forced reading is unchanged because repeats were never forced reading; group A moved by 5 words (4585 to 4580) under
+legacy rules and not at all under campaign rules. The floor and low human models are unchanged.
+
 ## Current baseline
 
 The table below is the **original game alone**, the last composition `make sim` gated before #233. It
