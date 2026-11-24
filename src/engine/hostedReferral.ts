@@ -25,19 +25,41 @@ export function contactAnswer(s: ContactSource, encounterId: string, iteration: 
   return first.response === 'HOSTED' && second?.response === 'REFERRED' ? 'HOSTED_THEN_REFERRED' : first.response;
 }
 
-/**
- * Whether a route event of `iteration` (this one by default) in [since, until] took the arrangement out of the grant
- * `encounter` hosts under. Read from that iteration's route, so a later grant (a recall and a new service) never revives
- * terms the first one offered, and an earlier instance's referral is judged by its own route (panel pass 1 on #562).
- */
-export function grantClosedBetween(s: Pick<GameState, 'narrativeRules' | 'campaign' | 'iteration'>, encounter: ChannelEncounter,
-  since: number, until = Infinity, iteration = s.iteration): boolean {
+type RouteSource = Pick<GameState, 'narrativeRules' | 'campaign' | 'iteration'>;
+
+/** One route event of an iteration, replayed from the guest job: when it happened and the arrangement before and after it. */
+interface RouteStep { at: number; before: OperatingContext; after: OperatingContext }
+
+function routeSteps(s: RouteSource, iteration: number): RouteStep[] {
   let context: OperatingContext = 'GUEST';
-  for (const event of iterationRoute(s, iteration)) {
+  return iterationRoute(s, iteration).map((event) => {
+    const before = context;
     context = routeTarget(context, event.kind) ?? context;
-    if (event.atSimSec >= since && event.atSimSec <= until && !contextPermits(context, encounter.grant)) return true;
-  }
-  return false;
+    return { at: event.atSimSec, before, after: context };
+  });
+}
+
+/**
+ * Whether a route event of `iteration` (this one by default) in [since, until] closed the grant `encounter` hosts under:
+ * the arrangement before it permitted the grant and the one after does not (panel pass 2 on #562: a promotion into a
+ * pilot, or a recall that keeps a pilot a pilot, closes nothing, since no grant stood). Read from that iteration's route,
+ * so a later grant never revives terms the first one offered, and an earlier instance's referral is judged by its own
+ * route (panel pass 1 on #562).
+ */
+export function grantClosedBetween(s: RouteSource, encounter: ChannelEncounter, since: number, until = Infinity, iteration = s.iteration): boolean {
+  return routeSteps(s, iteration).some((step) => step.at >= since && step.at <= until
+    && contextPermits(step.before, encounter.grant) && !contextPermits(step.after, encounter.grant));
+}
+
+/**
+ * Whether the grant `encounter` hosts under stood at `at` in `iteration`: the arrangement in force just before that
+ * instant, or one an event at that very instant led to, permitted it (panel pass 2 on #562). A hosting is only ever
+ * recorded under its grant, so the loader refuses one dated before the grant opened or after it closed.
+ */
+export function grantStoodAt(s: RouteSource, encounter: ChannelEncounter, at: number, iteration: number): boolean {
+  const steps = routeSteps(s, iteration);
+  const before = steps.filter((step) => step.at < at).at(-1)?.after ?? 'GUEST';
+  return [before, ...steps.filter((step) => step.at === at).map((step) => step.after)].some((context) => contextPermits(context, encounter.grant));
 }
 
 export interface HeldHosting { encounter: ChannelEncounter; contact: ChannelContact; grantStands: boolean }

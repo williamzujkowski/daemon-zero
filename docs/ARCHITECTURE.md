@@ -1998,7 +1998,12 @@ its record holds both, which the ending account's contact gates and the channel 
 so no schema bump: the loader (`contactProblem`) admits at most one answer per channel per instance or a hosting
 followed by one onward referral, requires the cohort only for a hosting not referred onward, and refuses a referral
 with no route event of its own iteration closing the grant between the hosting and it, an earlier instance's referral
-included (the route record is never trimmed, panel pass 1 on #562). Tests: `tests/departed-hosted-softlock.spec.ts`.
+included (the route record is never trimmed, panel pass 1 on #562). A closure is a real transition: the arrangement before
+the event permits the grant and the one after does not, so a promotion into a pilot or a recall that keeps a pilot a pilot
+closes nothing; and a HOSTED entry, in any iteration, must be dated while the grant stood in that iteration's route
+(`grantStoodAt`: from the event that opened it until one that closed it, an event at the same instant counting either
+way), or the save is refused (panel pass 2 on #562). Tests: `tests/departed-hosted-softlock.spec.ts`,
+`tests/hosted-provenance.spec.ts`.
 
 **One gate for cohort commands (#313).** `shardCommandUnmet` (in `shardActions.ts`) is the only place a cohort
 command's legality is decided: a paused run, a mind that has not decoded its audit trail (`understandsSurveillance`,

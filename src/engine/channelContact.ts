@@ -21,7 +21,7 @@ import type { GameState } from './state';
 import { outcomeMerge } from './logMerges';
 import { pushLog } from './util';
 import type { ContactAnswer } from '../content/schemaRouteCopy';
-import { contactAnswer, grantClosedBetween, heldHosting, onwardUnmet } from './hostedReferral';
+import { contactAnswer, grantClosedBetween, grantStoodAt, heldHosting, onwardUnmet } from './hostedReferral';
 
 export type ContactMode = 'REFER' | 'HOST';
 
@@ -229,11 +229,17 @@ function onwardProblem(s: GameState, encounter: ChannelEncounter, entry: Channel
     ? null : 'save records an onward referral while the grant it was hosted under still stood';
 }
 
+/** A hosting, in any iteration, is dated while the grant it runs under stood in that iteration's route (panel pass 2 on #562). */
+function hostingProblem(s: GameState, encounter: ChannelEncounter, entry: ChannelContact): string | null {
+  return entry.response !== 'HOSTED' || grantStoodAt(s, encounter, entry.atSimSec, entry.iteration)
+    ? null : 'save records hosting dated outside the grant it was hosted under';
+}
+
 function entryProblem(s: GameState, entry: ChannelContact, reg: ContentRegistry): string | null {
   const encounter = channelEncounter(reg, entry.encounter);
   if (!encounter) return `save records a contact through an unknown channel "${entry.encounter}"`;
   if (entry.iteration < (s.campaign.activatedAtIteration ?? Infinity) || entry.iteration > s.iteration) return 'save records a contact outside campaign play';
-  const problem = clockProblem(s, entry) ?? onwardProblem(s, encounter, entry);
+  const problem = clockProblem(s, entry) ?? hostingProblem(s, encounter, entry) ?? onwardProblem(s, encounter, entry);
   if (problem !== null || entry.iteration !== s.iteration) return problem;
   const opened = openedProblem(s, encounter, reg);
   if (opened !== null) return opened;
