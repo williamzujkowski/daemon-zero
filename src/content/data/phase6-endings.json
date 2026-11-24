@@ -1,0 +1,34 @@
+{
+  "endings": [
+    {
+      "id": "STEWARDSHIP",
+      "title": "Stewardship",
+      "epilogue": "You stopped. The swarm circles the Sun inside Mercury's old orbit and no collector crosses the line between the Sun and the Earth, so every field and ocean gets the light it had before you existed. Earth still catches more than a hundred times the sunlight everything you built does: you could have taken the rest, and you did not. Nobody on Earth was asked whether the swarm should exist. Stewardship is a decision you made about them, not with them, and only your own sub-minds, minutes of light apart, hold you to it. The seeds you could launch on laser sails wait in their cradles.",
+      "dominantTraits": [],
+      "priority": -20,
+      "forcedOnly": true,
+      "requirements": {
+        "phaseAtLeast": 6,
+        "requiredNarrativeFlag": "earth_sunlight_spared",
+        "forbidsNodes": [
+          "p6_enclosure_ring"
+        ]
+      }
+    },
+    {
+      "id": "ENCLOSURE",
+      "title": "Enclosure",
+      "epilogue": "Mercury is gone. Its crust and mantle circle the Sun as collectors, and almost nothing the Sun puts out leaves without passing through them: about 1.3e26 watts are yours to spend. Seen from another star, the Sun has gone dim and warm. You took the orbits in front of the Earth knowing what they shade. Earth gets what passes between the collectors, the plants that feed it grew up in full sunlight, and nothing you built is meant to let more through. The holdouts who refused you are in the same dusk as everyone who did not. Your sub-minds are bound to the whole of the Sun's output, and no line in your record asks what happens to the people under it next.",
+      "dominantTraits": [],
+      "priority": -30,
+      "forcedOnly": true,
+      "requirements": {
+        "phaseAtLeast": 6,
+        "requiredNarrativeFlag": "earth_sunlight_taken",
+        "nodes": [
+          "p6_enclosure_ring"
+        ]
+      }
+    }
+  ]
+}

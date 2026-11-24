@@ -742,6 +742,35 @@ a split and RECLAIM on the phone and the desktop and audits every control with a
 proves the fleet panel, every autonomy position the engine accepts (lowering it is a free lever), every paid rebuild and
 RECLAIM are reachable on both.
 
+### The Phase 6 Swarm (#486)
+
+No new window, widget or live region: Phase 6 (uiSlot CORP) uses the surfaces earlier phases built, all data-driven.
+
+- **CORP WORK** lists the swarm's cards and tracks as any phase's: Protocol: STEWARDSHIP and Protocol: ENCLOSURE carry
+  the ending warning ("Cannot be undone: this ends the run.") and their requirements, among them "Resolve The Holdouts";
+  each compute and radiator track says what radiator it deploys, now naming "the swarm's radiators".
+- **CORP FINANCE** carries one more radiator line (`radiator-ledger-swarm_radiator`): the swarm's area, what it sheds,
+  the heat sent through it and the share its compute runs at, beside the orbital radiators' line.
+- **SWARM** shows the federation in the fleet panel (`fleet-rep_p6_federated_subminds-*`): its strength, the autonomy dial
+  (TETHERED is the free way to stop federation drift), its drift meter and the split forecast. A divergent sub-mind and
+  the collisional cascade arrive through the raid notice and panel. A hazard's panel says "Identified" (no tracing, no
+  forensics), "ATTRIBUTION: no tracing needed, it is debris from your own swarm", and shows no GO DARK line, as a
+  deviant's does.
+- **World view** lists the holdout coalition (`actor-holdout_nations`) with its posture and, from rung 1 in Phase 6, its
+  pressure (`pressure-holdout_downlink_refusal`). A pressure answered by an upgrade track now reads "build <track>",
+  and only payroll reads "hire" (`AnswerAction` gained `BUILD`), so the copy names the lever truly.
+- **Listening post** plays the `swarm` source (SWARM // laser mesh, sky watch). Its lines have no voice clips, so they
+  offer no READ.
+- **Audio.** Phase 6 plays the Phase 5 score, lent by the manifest (`reusedBy: [6]`); the score's phase, not the game's,
+  keys the player, so the seed array does not restart it. A phase's own score always wins over a lent one.
+- **Endings.** Stewardship and Enclosure render on the existing ending screen (`ending-title`, `ending-epilogue`).
+
+`tests/e2e/swarm.e2e.ts` checks the disclosure (the protocol card, the radiator note and ledger line, the federation's
+drift meter and dial, the holdouts' posture, pressure and answer) and both ending screens on the phone and the desktop,
+each view against the repo's axe rules. No atlas stage or ARIA baseline line changed. A flag-gated card's requirement
+still reads the generic "Story condition: required" (a label shared with the fusion pilot); naming the condition is left
+to the copy owners.
+
 ### Retaliation and staff-harm scenes (#519)
 
 The four scenes a raid leads to are ordinary decisions (`dilemma-modal`), with no new control. A retaliation names the

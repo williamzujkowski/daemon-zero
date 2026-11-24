@@ -41,7 +41,8 @@ function allFour(start: GameState, choices: Record<string, string>): GameState {
 
 describe('Phase 5 decisions completed before a wipe stay complete (H14, V33)', () => {
   it('the final protocol needs four obligations, and none is met by an open occurrence', () => {
-    expect(FINAL.requirements).toEqual({ campaignObligations: OBLIGATIONS });
+    // It also closes once the Mercury seed array has opened the Swarm (#486).
+    expect(FINAL.requirements).toEqual({ campaignObligations: OBLIGATIONS, forbidsNodes: ['p5_mercury_seed_array'] });
     const before = exactReload(own(activeGame(), ...PREREQUISITES));
     expect(isNodeAvailable(before, FINAL, preview)).toBe(false);
     expect(unmetObligations(before)).toEqual(OBLIGATIONS);

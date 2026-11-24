@@ -20,7 +20,7 @@ function print(label: string, report: SimReport): void {
   console.log(`\n== ${report.strategy}, ${label} ==`);
   console.log(`  result            ${report.victory ? `VICTORY (${String(report.ending)})` : 'did not finish'}`);
   console.log(`  simulated time    ${(report.simSeconds / 3600).toFixed(2)} h`);
-  console.log(`  phase reached at  P1 ${minutes(p[1])} | P2 ${minutes(p[2])} | P3 ${minutes(p[3])} | P4 ${minutes(p[4])} | P5 ${minutes(p[5])} min`);
+  console.log(`  phase reached at  P1 ${minutes(p[1])} | P2 ${minutes(p[2])} | P3 ${minutes(p[3])} | P4 ${minutes(p[4])} | P5 ${minutes(p[5])} | P6 ${minutes(p[6])} min`);
   console.log(`  activity          ${JSON.stringify(report.activity)}`);
   console.log(`  wipes             ${String(report.wipes)}`);
   // Hostile minds (#491), every arrival in the run (the report's activity counts them per tick).
@@ -38,9 +38,9 @@ function print(label: string, report: SimReport): void {
   const peaks = [report.maxThermal, report.maxSuspicion, report.maxAegisLock].map((v) => v.toFixed(1));
   console.log(`  peaks             thermal ${String(peaks[0])}C | suspicion ${String(peaks[1])}% | aegis ${String(peaks[2])}%`);
   // The late hunter (#463): AEGIS through Phases 3-5, so a balance change shows whether it still threatens.
-  for (const phase of [3, 4, 5]) console.log(`  aegis P${String(phase)}          ${aegisPhaseLine(report, phase)}`);
+  for (const phase of [3, 4, 5, 6]) console.log(`  aegis P${String(phase)}          ${aegisPhaseLine(report, phase)}`);
   // The heat-and-power signature (#482) per phase, so a balance change shows what visible watts cost.
-  for (const phase of [1, 2, 3, 4, 5]) console.log(`  signature P${String(phase)}      ${signaturePhaseLine(report, phase)}`);
+  for (const phase of [1, 2, 3, 4, 5, 6]) console.log(`  signature P${String(phase)}      ${signaturePhaseLine(report, phase)}`);
   // Escalation by phase (#490): how often this run meets each AEGIS posture and each state-actor pressure.
   console.log(`  aegis posture     ${postureLine(report)}`);
   console.log(`  state pressure    ${pressureLine(report)}`);

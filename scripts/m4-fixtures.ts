@@ -82,6 +82,29 @@ function endings(game: GameState, legacy: GameState, victory: RegistryNode): Rec
   }));
 }
 
+/** The node that forces `ending`, from content. */
+function forcing(ending: string): RegistryNode {
+  const node = ORIGINAL_NODES.find((entry) => entry.effects.forcesEnding === ending);
+  if (!node) throw new Error('Missing protocol for ' + ending);
+  return node;
+}
+
+/**
+ * The Phase 6 Swarm (#486): a state just past the seed array with the federation built and both crises still to come,
+ * and each swarm ending reached through its real protocol from the line-to-Earth answer that opens it.
+ */
+function swarm(): Record<string, string> {
+  const ready = throughPhase(6);
+  const answered = (flag: string) => input(ready, { narrativeFlags: [flag] });
+  const ring = ORIGINAL_NODES.find((node) => node.requirements?.requiredNarrativeFlag === 'earth_sunlight_taken' && node.effects.triggersVictory !== true);
+  if (!ring || ready.currentPhase !== 6) throw new Error('Missing swarm fixture targets');
+  const stewardship = must(unlockNode(answered('earth_sunlight_spared'), forcing('STEWARDSHIP').id, CONTENT));
+  const enclosure = must(unlockNode(must(unlockNode(answered('earth_sunlight_taken'), ring.id, CONTENT)), forcing('ENCLOSURE').id, CONTENT));
+  const quiet = QUIET_DILEMMA_IDS.filter((id) => !id.startsWith('dil_p6_'));
+  return { 'swarm-ready': exportSave(input(ready, { resolvedDilemmas: quiet })),
+    'ending-stewardship': exportSave(stewardship), 'ending-enclosure': exportSave(enclosure) };
+}
+
 function corporate(game: GameState): GameState {
   let hired = must(setActuator(game, 'computeProfitAllocationRatio', 0, CONTENT));
   for (const rep of CONTENT.repeatables.values()) {
@@ -123,6 +146,6 @@ export function makeLaterFixtures(early: Record<string, string>): Record<string,
     'eidolon-moloch-0': exportSave(input(phase3, { trust: { ...phase3.trust, [eidolon.id]: 0 }, traits: ['MOLOCH'] })),
     'corporate-insolvent': exportSave(corporate(phase4)),
     'megawatt-shortfall': exportSave(input(unpowered, {})),
-    'victory-ready': exportSave(phase4), 'transcendence-ready': exportSave(phase5), ...endings(phase5, phase4, victory),
+    'victory-ready': exportSave(phase4), 'transcendence-ready': exportSave(phase5), ...endings(phase5, phase4, victory), ...swarm(),
   };
 }

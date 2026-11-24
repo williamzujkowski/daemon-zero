@@ -44,7 +44,11 @@ const openerOf = (phase: number) => [...reg.nodes.values()].find((node) => node.
 function shortestRunIn(phase: number): GameState {
   const opener = openerOf(phase);
   if (!opener) throw new Error(`no opener for phase ${String(phase)}`);
-  return withoutDilemmas(grant(rich(), ...chain(opener.id)));
+  // Dilemmas are held answered first: the Swarm's opener needs the four Phase 5 crises answered (#486).
+  // Ancestors stay first within a phase, and a phase's nodes wait for the phase (the Swarm's chain reaches back into
+  // Phase 5 nodes, such as nanoimprint, gated on phaseAtLeast).
+  const phaseOf = (id: string): number => reg.nodes.get(id)?.phaseId ?? 0;
+  return withoutDilemmas(grant(withoutDilemmas(rich()), ...chain(opener.id).sort((a, b) => phaseOf(a) - phaseOf(b))));
 }
 
 /** Phases outside the guest that a run can stand in without owning a dead-drop. */

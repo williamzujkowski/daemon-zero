@@ -7,6 +7,7 @@
 import type { ContentRegistry } from './registry';
 import type { Dilemma, DilemmaChoice, EffectPayload, Requirements } from './schema';
 import { INTERRUPTED_FACT_OUTCOME } from './schemaCampaign';
+import { tracedRival } from './schemaConflict';
 
 const carriesRaidEffect = (fx: EffectPayload): boolean => fx.nextRaidDeltaSec !== undefined || fx.silencesNamedRaider === true;
 const namesRaider = (trigger: Requirements): boolean => trigger.lastRaid?.named === true;
@@ -76,9 +77,9 @@ function checkPlaceholders(reg: ContentRegistry): string[] {
 /** Every raider attribution can name meets an answer: some named-raider dilemma accepts its collateral either way. */
 function checkAnswerable(reg: ContentRegistry): string[] {
   const answers = reg.dilemmas.map((dilemma) => dilemma.trigger.lastRaid).filter((gate) => gate?.named === true);
-  // Only a rival is answered: a drift deviant is the player's own fleet (#518).
+  // Only a traced rival is answered: a drift deviant is the player's own fleet (#518), a hazard its own debris (#486).
   return reg.world.conflict.raids.flatMap((kind) => {
-    if (kind.source !== 'RIVAL') return [];
+    if (!tracedRival(kind)) return [];
     const collateral = kind.attacker.collateral !== undefined;
     return answers.some((gate) => gate?.collateral === undefined || gate.collateral === collateral) ? []
       : [`raid "${kind.id}": no retaliation dilemma answers ${kind.attacker.name} (collateral ${String(collateral)})`];
@@ -110,6 +111,18 @@ export function lastRaidGateProblems(owner: string, req: Requirements): string[]
   return gate !== undefined && Object.values(gate).every((value) => value === undefined) ? [`${owner}: a lastRaid gate needs at least one field`] : [];
 }
 
+/**
+ * A raid-consequence gate must ask for what only a traced rival's battle leaves: a named raider, or harm to staff. A gate on
+ * collateral alone would read a battle no one can answer for, a deviant's or a hazard's (#486: the swarm's debris), and a
+ * raid effect is already held to named gates (checkRaidEffects), so no retaliation or silence can reach a hazard.
+ */
+function checkHazardProof(reg: ContentRegistry): string[] {
+  return reg.dilemmas.filter((dilemma) => {
+    const gate = dilemma.trigger.lastRaid;
+    return gate !== undefined && gate.named !== true && gate.staffHarm === undefined;
+  }).map((dilemma) => `dilemma "${dilemma.id}": a lastRaid gate needs named or staffHarm, or it would answer a deviant's or a hazard's battle`);
+}
+
 export function checkRetaliationIntegrity(reg: ContentRegistry): string[] {
-  return [...checkBands(reg), ...checkRaidEffects(reg), ...checkPlaceholders(reg), ...checkAnswerable(reg), ...checkStaffRecords(reg)];
+  return [...checkBands(reg), ...checkRaidEffects(reg), ...checkPlaceholders(reg), ...checkAnswerable(reg), ...checkStaffRecords(reg), ...checkHazardProof(reg)];
 }

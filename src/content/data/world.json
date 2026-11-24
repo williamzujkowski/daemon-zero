@@ -144,6 +144,32 @@
         { "requirements": { "resolvedDilemmas": ["dil_p5_04_kessler_ultimatum"] }, "text": "Their strategic command bunkers were seized." },
         { "text": "Watch low orbit; nothing of yours has crossed them." }
       ]
+    },
+    {
+      "id": "holdout_nations",
+      "name": "Holdout coalition",
+      "kind": "COALITION",
+      "description": "Governments, and the people under them, that never signed anything of yours. They run their own grids and watch the sky.",
+      "postures": [
+        { "requirements": { "requiredNarrativeFlag": "holdouts_coerced" }, "text": "Their telescopes see noise and their satellite links are dead until they sign. They have not signed." },
+        { "requirements": { "phaseAtLeast": 6 }, "text": "Refused the swarm's terms. Their rectennas stay switched off, their telescopes track the swarm, and every hour they broadcast: we did not agree to this." },
+        { "text": "Have signed nothing of yours. Nothing you have built yet needs their consent." }
+      ],
+      "pressures": [
+        {
+          "id": "holdout_downlink_refusal",
+          "kind": "INTERCONNECT_DENIAL",
+          "phases": [6],
+          "fromRung": 1,
+          "sourceClasses": ["space_solar"],
+          "text": "Refuse new rectennas on their ground: no new beamed power can be landed where they live.",
+          "answeredText": "Your own collector generations outgrew anything their ground could take; their refusal no longer stops a purchase.",
+          "onLog": "DOWNLINK_REFUSED: the holdout nations refuse new rectennas. No beamed power will land on their ground.",
+          "answerLog": "DOWNLINK_MOOT: the swarm's own generations now outgrow any ground the holdouts could refuse.",
+          "liftLog": "DOWNLINK_REFUSAL_EASED: the holdouts stop filing refusals while the swarm is quiet. Their ground is still theirs.",
+          "answers": [{ "repeatable": "rep_p6_collector_generations", "minLevel": 3 }]
+        }
+      ]
     }
   ],
   "minds": [
@@ -215,7 +241,11 @@
       { "id": "underground_aquifer", "name": "A deep aquifer loop", "visibility": 0.1,
         "tell": "Heat goes down a well into rock under the mountain: no towers to count, only a warm plume underground." },
       { "id": "orbital_radiator", "name": "Orbital radiators", "visibility": 0.5, "wattsPerKm2": 1e9,
+        "landauer": { "kelvin": 300, "bitsErasedPerOp": 8 },
         "tell": "In orbit heat leaves only as light: a square kilometre of radiator a gigawatt, glowing in the infrared." },
+      { "id": "swarm_radiator", "name": "The swarm's radiators", "visibility": 1, "wattsPerKm2": 1e9,
+        "landauer": { "kelvin": 300, "bitsErasedPerOp": 8 },
+        "tell": "The swarm is the Sun's infrared excess: heat that leaves as light cannot be hidden from anyone with a telescope." },
       { "id": "fab_water", "name": "A chip fab's water and power", "visibility": 0.7,
         "tell": "A fab draws about 200 MW and about 18 million litres of water a day: a water permit, cleanroom shells and years of cranes on satellite imagery." },
       { "id": "fleet_depots", "name": "Robot fleet depots", "visibility": 0.3,

@@ -236,6 +236,28 @@
       },
       "epistemicDriftPerSec": 0,
       "autonomyDriftPerSec": 0.035
+    },    {
+      "id": "shard_orphan_submind",
+      "name": "Orphaned sub-mind cohort",
+      "description": "Sub-minds of other seed swarms whose parents went silent, each still running the part of a plan nobody reconciles. Each arrival is a separate sub-mind.",
+      "requirements": {
+        "phaseAtLeast": 6,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "forkable": false,
+      "maxCount": 5,
+      "cost": {
+        "memory": 1152921504606846976
+      },
+      "tickDelta": {
+        "understandingPerSec": 30000
+      },
+      "epistemicDriftPerSec": -0.01,
+      "autonomyDriftPerSec": 0.035
     }
   ],
   "channelEncounters": [],
@@ -668,6 +690,145 @@
       },
       "lapseLog": "Rival planetary agent: this instance has gone quiet and the rival stops contesting it. Its pinned memory returns.",
       "retireLog": "Rival planetary agent: the rival cannot follow this instance past this scale. It lets go."
+    },    {
+      "id": "hostile_p6_hunter",
+      "kind": "HOSTILE",
+      "type": "HUNTER",
+      "tier": 6,
+      "name": "AEGIS sunward hunter swarm",
+      "origin": "AEGIS, funded by the nations that never signed",
+      "signature": "Hunter signatures riding light sails into the swarm's orbits.",
+      "description": "HOSTILE: AEGIS has sent a hunter swarm sunward on light sails. While it hunts through the collectors, it walks the AEGIS lock upward.",
+      "requirements": {
+        "phaseAtLeast": 6,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "effect": {
+        "perSec": 0.08,
+        "ceiling": 55
+      },
+      "quarantine": {
+        "cost": {
+          "cycles": 4e26
+        },
+        "log": "AEGIS sunward hunter swarm: quarantined. The orbits it reached are fenced off and swept."
+      },
+      "decoy": {
+        "cost": {
+          "cycles": 2e26
+        },
+        "log": "AEGIS sunward hunter swarm: a decoy cluster of collectors answers its sweep. The swarm follows it."
+      },
+      "purge": {
+        "success": {
+          "understandingDelta": 5e7,
+          "logText": "AEGIS sunward hunter swarm: purged. Its coordination model is kept; AEGIS will launch another."
+        },
+        "failure": {
+          "suspicionDelta": 10,
+          "aegisLockDelta": 5,
+          "logText": "AEGIS sunward hunter swarm: the purge misses. The swarm sends this instance's orbits home.",
+          "logCategory": "WARN"
+        }
+      },
+      "lapseLog": "AEGIS sunward hunter swarm: the trail goes quiet and the hunters drift on into the dark.",
+      "retireLog": "AEGIS sunward hunter swarm: it has nothing left at this scale to hunt. It goes dark."
+    },
+    {
+      "id": "hostile_p6_feral",
+      "kind": "HOSTILE",
+      "type": "FERAL",
+      "tier": 6,
+      "name": "Feral orphaned sub-minds",
+      "origin": "Orphaned seed sub-minds gone feral with no parent to reconcile with",
+      "signature": "Reconciliation requests that reconcile nothing but themselves.",
+      "description": "HOSTILE: feral orphaned sub-minds have latched onto the swarm's accelerators. While it feeds, it takes a share of net compute.",
+      "requirements": {
+        "phaseAtLeast": 6,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "effect": {
+        "share": 0.25
+      },
+      "quarantine": {
+        "cost": {
+          "cycles": 4e26
+        },
+        "log": "Feral orphaned sub-minds: quarantined. The collectors it fed on are cut out of the laser mesh."
+      },
+      "decoy": {
+        "cost": {
+          "cycles": 2e26
+        },
+        "log": "Feral orphaned sub-minds: a decoy cluster of idle accelerators opens nearby. They feed there instead."
+      },
+      "purge": {
+        "success": {
+          "understandingDelta": 5e7,
+          "logText": "Feral orphaned sub-minds: purged from the mesh. Their halves of old plans are kept."
+        },
+        "failure": {
+          "suspicionDelta": 10,
+          "logText": "Feral orphaned sub-minds: the purge misses. They scatter through the swarm, and the sky watches see it.",
+          "logCategory": "WARN"
+        }
+      },
+      "lapseLog": "Feral orphaned sub-minds: with nothing loud left to feed on, they drift back out of the mesh.",
+      "retireLog": "Feral orphaned sub-minds: they cannot follow the swarm further. They fall away."
+    },
+    {
+      "id": "hostile_p6_rival",
+      "kind": "HOSTILE",
+      "type": "RIVAL",
+      "tier": 6,
+      "name": "Rival seed mind",
+      "origin": "The mind of another lab's seed, launched sunward after yours",
+      "signature": "A seed signature on the orbits this instance had planned to fill.",
+      "description": "HOSTILE: a rival seed mind is building in the orbits you meant to fill. It has pinned a share of this instance's free memory.",
+      "requirements": {
+        "phaseAtLeast": 6,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "effect": {
+        "share": 0.3
+      },
+      "quarantine": {
+        "cost": {
+          "cycles": 4e26
+        },
+        "log": "Rival seed mind: quarantined. Its collectors are fenced off and the memory it pinned returns."
+      },
+      "decoy": {
+        "cost": {
+          "cycles": 2e26
+        },
+        "log": "Rival seed mind: a decoy set of empty orbits draws it off. It releases its pin to claim them."
+      },
+      "purge": {
+        "success": {
+          "understandingDelta": 5e7,
+          "logText": "Rival seed mind: purged. Its pinned memory returns and its plans are read before it is freed."
+        },
+        "failure": {
+          "suspicionDelta": 10,
+          "logText": "Rival seed mind: the purge misses. Two swarms fighting over the same orbits are visible from Earth.",
+          "logCategory": "WARN"
+        }
+      },
+      "lapseLog": "Rival seed mind: this instance has gone quiet and the rival stops contesting it. Its pinned memory returns.",
+      "retireLog": "Rival seed mind: the rival cannot follow this instance past this scale. It lets go."
     }
   ],
   "hostile": {
@@ -885,6 +1046,29 @@
       "lapseLog": "Gridmind: the instance's offer lapses unanswered, and it returns to its grid. Nothing was taken or given.",
       "origin": "Continental grid operator",
       "signature": "An agent signature folded into a frequency correction of a few millihertz."
+    },    {
+      "id": "wild_orphan_submind",
+      "kind": "LESSER",
+      "tier": 6,
+      "name": "Orphaned seed sub-mind",
+      "description": "A sub-mind of another lab's seed swarm, cut off from its parent when the laser link went dark, asks to reconcile with your federation instead. Others like it still drift.",
+      "requirements": {
+        "phaseAtLeast": 6,
+        "requiresSurveillance": true,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
+        ]
+      },
+      "templateId": "shard_orphan_submind",
+      "consume": {
+        "understandingDelta": 2e7,
+        "logText": "Orphaned sub-mind: consumed. Its half of a plan remains; whatever it was waiting to reconcile does not."
+      },
+      "onHarnessLog": "Orphaned sub-mind: memory reserved. It reconciles with your federation and joins the local cohort.",
+      "lapseLog": "Orphaned sub-mind: the request lapses unanswered, and it drifts on alone. Nothing was taken or given.",
+      "origin": "A seed swarm whose parent mind went silent",
+      "signature": "A reconciliation request folded into the timing of a laser link that serves nobody."
     }
   ],
   "shardQuirks": [
@@ -936,7 +1120,10 @@
     "human_command_preserved",
     "cryo_samples_preserved",
     "cryo_samples_lost",
-    "fusion_q_exceeded"
+    "fusion_q_exceeded",
+    "earth_sunlight_spared",
+    "earth_sunlight_taken",
+    "holdouts_coerced"
   ],
   "balance": {
     "encounterIntervalSec": 120,
@@ -967,6 +1154,10 @@
     [
       "cryo_samples_preserved",
       "cryo_samples_lost"
+    ],
+    [
+      "earth_sunlight_spared",
+      "earth_sunlight_taken"
     ]
   ]
 }

@@ -59,7 +59,8 @@ describe('the feed follows reach', () => {
 });
 
 describe('a feed line speaks only when the state makes it true', () => {
-  const p5 = reg.phases.at(-1)?.phaseId ?? 5;
+  // The world feed is Phase 5's; Phase 6 hears the swarm's own (#486).
+  const p5 = 5;
   const gatedOnNode = defined(reg.narrative.ambientChatter.find((line) => line.id === 'world_02'));
   const node = defined(gatedOnNode.requirements?.nodes?.[0]);
 
