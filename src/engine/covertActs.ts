@@ -81,7 +81,8 @@ export function covertTotals(s: Pick<GameState, 'campaign' | 'iteration'>, route
 
 /**
  * Why a save's covert record must be refused, or null. Nothing is healed. Under legacy rules there is none (a legacy
- * save holding one is refused earlier as campaign history without activation, campaignSave.ts); inside campaign play each entry is one instance's, at most one per instance, in order, no later than the current one, and
+ * save holding one is refused earlier as campaign history without activation, campaignSave.ts); inside campaign play
+ * each entry is one instance's, at most one per instance, in order, no later than the current one, and
  * that instance's last route event is the one it names, recorded no later than its first act; its breaks are distinct.
  */
 export function covertProblem(s: Pick<GameState, 'narrativeRules' | 'campaign' | 'iteration'>): string | null {
