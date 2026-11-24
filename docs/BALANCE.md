@@ -651,7 +651,8 @@ budget in a separate, labelled commit (below).
 The seed array needs the planetary protocol's own four crises (`campaignObligations`), so Phase 5 asks the same questions
 whichever way it ends, and it costs what the protocol costs, so Phase 5 is as long as it was. Its `accessContexts` is
 `GUEST`: a lawfully released company (the Earned Access route, #232) keeps its earned Phase 5 ending, and its reviewed
-endings and record lines do not move. Whether such a company may open the Swarm is left for a later decision.
+endings and record lines do not move. vote-1795480470478-25c6ja4 (6 A / 1 B) kept the restriction; #550 gives the lawful
+route its own consent-bound Swarm path after #536.
 
 Prices are compute and understanding only. The Phase 6 money band is empty: dollars are the ledger of dealings with
 humans, and the swarm deals with none (integrity refuses a capital price in Phase 6).

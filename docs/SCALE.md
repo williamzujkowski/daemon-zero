@@ -347,8 +347,9 @@ From late Phase 4 into Phase 5:
   - **The gate.** The Mercury seed array, a Phase 5 node after the survey and the proof engine, opens Phase 6. It needs
     the protocol's four crises, costs what the protocol costs and closes Protocol: TRANSCENDENCE behind it, which stays a
     valid Phase 5 ending until then (the smallest choice consistent with this vote). It belongs to the escape route
-    (`accessContexts: GUEST`), so the Earned Access route keeps its earned Phase 5 ending; whether a lawfully released
-    company may open the Swarm is left open.
+    (`accessContexts: GUEST`), so the Earned Access route keeps its earned Phase 5 ending. vote-1795480470478-25c6ja4
+    (6 A / 1 B) kept that restriction; #550 gives the lawful route its own consent-bound Swarm path after the relevance
+    stance (#536).
   - **The build.** Mass drivers and collector generations (TW per step; the enclosure generations reach 1.2e26 W, the Sun
     at Armstrong and Sandberg's third efficiency). Compute at today's 8-bit efficiency on the swarm's own radiators (1 GW
     a km², visibility 1), radiator-bound through `radiators.ts`; integrity holds every compute holding on a radiator sink
