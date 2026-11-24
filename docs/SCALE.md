@@ -363,7 +363,7 @@ From late Phase 4 into Phase 5:
   - **Endings.** Stewardship and Enclosure, forced by their protocols; their requirements state the evidence and
     integrity proves the protocol's gates imply it. Epilogues are #466's to build three movements on.
   - **Score and pacing.** The manifest lends Phase 6 the Phase 5 score (`reusedBy`). The gates gain a 900-3600 s Phase 6
-    budget (story-first, like Phase 5's cap), and the careful run ends in Stewardship at 3.32 h. No GameState change, so
+    budget (story-first, like Phase 5's cap), and the careful run ends in Stewardship at 3.25 h. No GameState change, so
     no save migration. Numbers, anchors and pacing: BALANCE.md, "The Phase 6 Swarm (#486)".
 
 ### Round 2 build order
