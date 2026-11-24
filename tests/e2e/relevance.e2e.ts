@@ -73,7 +73,8 @@ test('the threshold is announced once, then each stance is offered with what bin
 
 test('the world view says nothing binds, and changes the stance back into the loop at the return price', async ({ page }) => {
   await boot(page, 'transcendence-ready', { axeTimers: true, patch: (game) => ({ ...independent(game), resolvedDilemmas: CONTENT.dilemmas.map((dilemma) => dilemma.id),
-    relevance: { stance: 'DECIDE_ALONE', record: [{ iteration: game.iteration, atSimSec: game.simTimeSec, from: null, stance: 'DECIDE_ALONE', via: 'THRESHOLD' }] } }) });
+    relevance: { stance: 'DECIDE_ALONE', record: [{ iteration: game.iteration, atSimSec: game.simTimeSec, from: null, stance: 'DECIDE_ALONE', via: 'THRESHOLD' }],
+      paidMoves: { leftLoop: 0, returnedToLoop: 0 } } }) });
   await dismissBoot(page);
   await openMinds(page);
   const section = page.getByTestId('world-relevance');

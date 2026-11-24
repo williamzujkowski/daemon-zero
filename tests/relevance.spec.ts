@@ -189,7 +189,8 @@ describe('changing the stance costs a price, and returning to the loop costs mor
     const s = rich(holding(PAST, 'KEEP_IN_THE_LOOP'));
     const left = after(s, 'DECIDE_ALONE');
     expect([left.cycles, left.capital]).toEqual([s.cycles - relevance.changeCost.cycles, s.capital - relevance.changeCost.capital]);
-    expect(left.relevance).toEqual({ stance: 'DECIDE_ALONE', record: [{ iteration: s.iteration, atSimSec: s.simTimeSec, from: 'KEEP_IN_THE_LOOP', stance: 'DECIDE_ALONE', via: 'CHANGE' }] });
+    expect(left.relevance).toEqual({ stance: 'DECIDE_ALONE', record: [{ iteration: s.iteration, atSimSec: s.simTimeSec, from: 'KEEP_IN_THE_LOOP', stance: 'DECIDE_ALONE', via: 'CHANGE' }],
+      paidMoves: { leftLoop: 1, returnedToLoop: 0 } });
     expect(inForce(onRung(unanswered(left), 3))).toEqual([]);
   });
 

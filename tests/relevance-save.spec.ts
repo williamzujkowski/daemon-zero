@@ -16,7 +16,7 @@ describe('save v28 (#536)', () => {
     expect(SCHEMA_VERSION).toBe(28);
   });
 
-  it('migrates a v27 save to no stance and an empty record, and keeps everything else', () => {
+  it('migrates a v27 save to no stance, an empty record and no paid moves, and keeps everything else', () => {
     const current = p5();
     const raw = JSON.parse(serialize(current)) as Record<string, unknown>;
     const v27: Record<string, unknown> = { ...raw, schemaVersion: 27 };
@@ -33,7 +33,8 @@ describe('save v28 (#536)', () => {
   });
 
   it('keeps a stance and its record through a round trip', () => {
-    const s = { ...p5(), relevance: { stance: 'CURATE' as const, record: [entry, { ...entry, atSimSec: 40, from: 'DECIDE_ALONE' as const, stance: 'CURATE' as const, via: 'CHANGE' as const }] } };
+    const s = { ...p5(), relevance: { stance: 'CURATE' as const, record: [entry, { ...entry, atSimSec: 40, from: 'DECIDE_ALONE' as const, stance: 'CURATE' as const, via: 'CHANGE' as const }],
+      paidMoves: { leftLoop: 3, returnedToLoop: 2 } } };
     expect(deserialize(serialize(s), reg).relevance).toEqual(s.relevance);
   });
 
@@ -45,5 +46,8 @@ describe('save v28 (#536)', () => {
     expect(load({ stance: null, record: [{ ...entry, atSimSec: -1 }] })).toThrow();
     expect(load({ stance: null, record: Array.from({ length: MAX_STANCE_RECORD + 1 }, () => entry) })).toThrow();
     expect(load({ stance: null })).toThrow();
+    expect(load({ stance: null, record: [] })).toThrow();
+    expect(load({ stance: null, record: [], paidMoves: { leftLoop: -1, returnedToLoop: 0 } })).toThrow();
+    expect(load({ stance: null, record: [], paidMoves: { leftLoop: 1.5, returnedToLoop: 0 } })).toThrow();
   });
 });

@@ -26,7 +26,8 @@ const independent = (game: GameState): GameState => ({ ...game, unlockedNodes: [
   resolvedDilemmas: CONTENT.dilemmas.map((dilemma) => dilemma.id) });
 const below = (game: GameState): GameState => ({ ...independent(game), unlockedNodes: independent(game).unlockedNodes.filter((id) => id !== chain.seedNode) });
 const holding = (stance: Stance | null) => (game: GameState): GameState =>
-  ({ ...independent(game), cycles: 1e27, capital: 1e14, relevance: { stance, record: stance === null ? [] : [{ iteration: game.iteration, atSimSec: 1, from: null, stance, via: 'THRESHOLD' }] } });
+  ({ ...independent(game), cycles: 1e27, capital: 1e14, relevance: { stance, record: stance === null ? [] : [{ iteration: game.iteration, atSimSec: 1, from: null, stance, via: 'THRESHOLD' }],
+    paidMoves: { leftLoop: 0, returnedToLoop: 0 } } });
 /** Rung 3 with no answer held: every Phase 5 pressure is called. */
 const pressed = (patch: (game: GameState) => GameState) => (game: GameState): GameState => {
   const s = patch(game);

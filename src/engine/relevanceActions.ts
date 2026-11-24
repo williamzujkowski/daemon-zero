@@ -1,8 +1,8 @@
 /**
  * Taking and changing the standing stance (#536). The threshold's dilemma takes the first stance (its choice declares
  * one); after that a stance changes only here, at a price: content's change cost away from the loop, and its return
- * cost, at least twice that, to come back to KEEP_IN_THE_LOOP. Every stance taken or changed is entered in the record,
- * which the Order axis and the ending read. One gate serves the action and the view, and the spend goes through
+ * cost, at least twice that, to come back to KEEP_IN_THE_LOOP. Every stance taken or changed is entered in the rolling
+ * record the ending reads, and every paid move out of or into the loop in the counts the Order axis reads. One gate serves the action and the view, and the spend goes through
  * transactions.ts (law 4); a state actor's freeze limits it as it limits any purchase.
  */
 import type { ContentRegistry } from '../content/registry';
@@ -12,7 +12,7 @@ import type { ActionResult } from './actions';
 import { canAfford } from './query';
 import { formatCost, pausedReason } from './queryPresentation';
 import { relevanceReading, type RelevanceReading } from './relevance';
-import { MAX_STANCE_RECORD, type StanceEntry } from './relevanceState';
+import { MAX_STANCE_RECORD, paidMove, type StanceEntry } from './relevanceState';
 import type { GameState } from './state';
 import { payCost } from './transactions';
 import { pushLog } from './util';
@@ -24,8 +24,10 @@ export function stanceCopy(reg: ContentRegistry, stance: Stance): StanceCopy | u
 
 /** Enters a stance in a draft: the stance held, its record entry and its log line. */
 function takeStance(d: GameState, stance: Stance, via: StanceEntry['via'], reg: ContentRegistry): void {
-  const entry = { iteration: d.iteration, atSimSec: d.simTimeSec, from: d.relevance.stance, stance, via };
-  d.relevance = { stance, record: [...d.relevance.record, entry].slice(-MAX_STANCE_RECORD) };
+  const from = d.relevance.stance, entry = { iteration: d.iteration, atSimSec: d.simTimeSec, from, stance, via };
+  const move = via === 'CHANGE' ? paidMove(from, stance) : null;
+  const paidMoves = move === null ? d.relevance.paidMoves : { ...d.relevance.paidMoves, [move]: d.relevance.paidMoves[move] + 1 };
+  d.relevance = { stance, record: [...d.relevance.record, entry].slice(-MAX_STANCE_RECORD), paidMoves };
   const log = stanceCopy(reg, stance)?.log;
   if (log !== undefined) pushLog(d, reg, log, 'LORE');
 }

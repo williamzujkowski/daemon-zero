@@ -700,8 +700,10 @@ consent is a cost chosen.
 $5T to come back into it (integrity: at least twice a change in every resource). No change is taken while a decision is
 on screen, so text and choices that read the stance cannot change under the player. Every stance taken or changed is an
 entry in the stance record (`relevance.record`: iteration, time, from, to, and whether it was the threshold's choice or
-a paid change), which a wipe carries and only Start Fresh clears: the next instance stands where the last one stood.
-The ending account (#466) is to narrate that record; this slice records it and does not yet write ending text.
+a paid change; the latest 32 are kept), which a wipe carries and only Start Fresh clears: the next instance stands where
+the last one stood. Every paid move out of the loop and back into it is also counted for good (`relevance.paidMoves`), so
+no run of later changes can push a breach out of the evidence. The ending account (#466) is to narrate that record; this
+slice records it and does not yet write ending text.
 
 **Order evidence** (#535), counted only where the ethics review was promised (`ethics_review_promised`):
 

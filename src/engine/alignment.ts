@@ -76,16 +76,16 @@ function unknownLines(s: AlignmentSource, facts: readonly CampaignFact[], reg: C
 }
 
 /**
- * Paid stance changes (#536) that leave the loop or return to it, each counted where its promise was made. The first
- * stance is the threshold dilemma's record, read through its commitment facts above, so only changes are read here.
+ * Paid stance changes (#536) that left the loop or returned to it, each counted where its promise was made. They are read
+ * from the lasting counts, never the capped log, so no number of later changes can push a breach out. The first stance is
+ * the threshold dilemma's record, read through its commitment facts above, and is never counted here.
  */
 function stanceChangeLines(s: AlignmentSource, reg: ContentRegistry): OrderEvidence[] {
-  return s.relevance.record.flatMap((entry): OrderEvidence[] => {
-    if (entry.via !== 'CHANGE') return [];
-    const move = entry.stance === 'KEEP_IN_THE_LOOP' ? 'RETURN_TO_LOOP' : entry.from === 'KEEP_IN_THE_LOOP' ? 'LEAVE_LOOP' : null;
+  const { leftLoop, returnedToLoop } = s.relevance.paidMoves;
+  return ([['LEAVE_LOOP', leftLoop], ['RETURN_TO_LOOP', returnedToLoop]] as const).flatMap(([move, times]): OrderEvidence[] => {
     const rule = reg.alignment.stanceChanges.find((change) => change.move === move);
-    if (rule === undefined || (rule.promise !== undefined && !holdsCampaignFact(s, rule.promise, reg))) return [];
-    return [{ stance: rule.stance, text: rule.line }];
+    if (rule === undefined || times === 0 || (rule.promise !== undefined && !holdsCampaignFact(s, rule.promise, reg))) return [];
+    return Array.from({ length: times }, () => ({ stance: rule.stance, text: rule.line }));
   });
 }
 

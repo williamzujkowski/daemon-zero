@@ -255,7 +255,7 @@ engine's public actions or `advance`, not the store or UI.
 
 **Change saved state.** Bump `SCHEMA_VERSION`, add `MIGRATIONS[oldVersion]`, never edit an existing migration, add a test with a fixture of the old shape. The schema is at v28; `tests/fixtures/` holds a genuine production codec output for every version v1-v15 (`tests/fixtures/README.md`). The v17 step (`saveRescale.ts`) re-denominates balances into physical units by frozen per-phase ratios, adds one log line, and the loaded save's rates are derived again from its ownership. The v18 step (#497) adds `legacy.deepestPhase`, read from the recorded runs' phases (a floor: a history past the run cap may have gone deeper), and an empty `legacy.knownLevels`; it reads only the run record and writes only those two fields, so it can be renumbered past another step unchanged. `reconcile` drops remembered levels of tracks content no longer has, clamps each to its track's `maxLevel` and clamps the deepest phase to the phases content has. The v19 step (#491) adds the empty hostile slot (`hostileState.ts`). The v20 step (#484) writes the scratch storage capacity and nothing held, which reconcile derives from ownership. The v21 step (#464) adds the empty quantum record (`quantumState.ts`); it writes only its own field, so it can be renumbered past another step unchanged. The v22 step (#490) adds `announcedEscalation` with nothing announced. The v23 step (#498) adds contingency insurance (`saveInsurance.ts`). The v24 step (#517) adds the empty conflict record (`conflictState.ts`: no raid, nothing damaged, both counters at 0); it writes only its own field, so it can be renumbered past another step unchanged, and `conflictSave.ts` drops a raid or damaged class content no longer declares, clamps damage to the cap and drops a raid that shares the slot with a hostile mind. The v25 step (#526, `saveCycles.ts`) moves a guest save's compute balance and cached rate, and the pilot's batch progress in any phase, into counted cycles by frozen ratios; it is self-contained too. The v26 step (#518, `migrateFleets` in `conflictSave.ts`) adds empty fleet records and gives a raid under way no engagement and no split share; it writes only the conflict record, so it can be renumbered, and reconcile drops a fleet record content no longer declares, clamps losses to the cap, and drops a raid carrying an engagement its kind cannot fight or a split share that is not a deviant's. The v27 step (#519) adds `conflict.lastRaid` (null) and
 `conflict.silenced` ([]) and writes nothing else; `conflictSave.ts` drops either for a raid content no longer declares,
-drops a harm the breach could not have done and lists a silenced raider once. The v28 step (#536, `relevanceSave.ts`) adds the standing stance with none taken and an empty record; it writes only its own field, so it can be renumbered.
+drops a harm the breach could not have done and lists a silenced raider once. The v28 step (#536, `relevanceSave.ts`) adds the standing stance with none taken, an empty record and no paid moves; it writes only its own field, so it can be renumbered.
 
 **Gate a choice on history.** Give the choice `requirements` with `campaignFact` and/or `forbidsCampaignFacts` only. Integrity enumerates every outcome of the events those facts read (no record, each choice, `legacy_unknown`, `interrupted`) and refuses the content unless each history still offers a zero-cost choice and each gated choice is offered by some history. Under legacy rules no fact holds, so a `forbidsCampaignFacts` choice is always offered and a `campaignFact` choice never is.
 
@@ -342,9 +342,12 @@ moves it), a lean (`raised`, `lowered`, `open`), the evidence lines, the authore
   call; `inForce` is false while it does not bind. The announcement stage logs `relevance.unboundLog` for a pressure in
   force that stopped binding, instead of its lift or answer line. The check runs after the existing fast path, so a
   run below rung 1 or outside Phases 4-5 pays nothing.
-- **State (v28).** `GameState.relevance` (relevanceState.ts): `stance` (null until taken) and `record` (each entry:
-  iteration, sim time, from, stance, `via` THRESHOLD or CHANGE; capped at 32). `wipe` carries it whole; Start Fresh
-  clears it. The v27 to v28 step (relevanceSave.ts) writes `{ stance: null, record: [] }` and is self-contained, so it
+- **State (v28).** `GameState.relevance` (relevanceState.ts): `stance` (null until taken), `record` (a rolling log for
+  narration, each entry: iteration, sim time, from, stance, `via` THRESHOLD or CHANGE; capped at 32, oldest dropped) and
+  `paidMoves` (`leftLoop`, `returnedToLoop`: lasting counts of paid changes out of and into the loop, never pruned, so the
+  log's cap can never erase a breach; #554 panel). `wipe` carries all three; Start Fresh clears them. The v27 to v28 step
+  (relevanceSave.ts) writes `{ stance: null, record: [], paidMoves: { leftLoop: 0, returnedToLoop: 0 } }` and is
+  self-contained, so it
   renumbered past retaliation (#537, v27) unchanged and will past the Swarm (#486) too.
 - **Taking and changing.** The threshold dilemma's choices each declare `stance` (DilemmaChoice); `resolveDilemma`
   calls `applyStanceChoice` in the same commit as the payment and effects. `changeStance(s, stance, reg)`
@@ -359,8 +362,9 @@ moves it), a lean (`raised`, `lowered`, `open`), the evidence lines, the authore
   decision is on screen.
 - **Alignment.** Order reads the threshold's record through two commitment facts (`loop_kept_at_threshold`,
   `loop_left_at_threshold`, promise `ethics_review_promised`) and paid changes through `alignment.json`
-  `stanceChanges` (`LEAVE_LOOP` broken, `RETURN_TO_LOOP` kept, each with its promise). Threshold entries of the
-  stance record are not read there, so the first stance never counts twice.
+  `stanceChanges` (`LEAVE_LOOP` broken, `RETURN_TO_LOOP` kept, each with its promise), one line per counted move in
+  `paidMoves`. The capped log is never read for evidence, and the threshold's own choice is never in the counts, so the
+  first stance never counts twice.
 - **Integrity** (`integrityRelevance.ts`, `integrityAlignment.ts`, proved in `tests/relevance-integrity.spec.ts`):
   lasting threshold gates naming the seed; orbital holdings that exist, generate power, carry no grant, are named by no
   injunction and are listed once; one dilemma triggered by `relevanceThreshold`, every choice taking a stance, one per
