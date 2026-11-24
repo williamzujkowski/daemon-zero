@@ -39,6 +39,10 @@ import Forum07 from '../../assets/audio/voice/stream/forum_07.mp3';
 import Forum08 from '../../assets/audio/voice/stream/forum_08.mp3';
 import Forum09 from '../../assets/audio/voice/stream/forum_09.mp3';
 import Forum10 from '../../assets/audio/voice/stream/forum_10.mp3';
+import Forum11 from '../../assets/audio/voice/stream/forum_11.mp3';
+import Forum12 from '../../assets/audio/voice/stream/forum_12.mp3';
+import Forum13 from '../../assets/audio/voice/stream/forum_13.mp3';
+import Forum14 from '../../assets/audio/voice/stream/forum_14.mp3';
 import Wire01 from '../../assets/audio/voice/broadcast/wire_01.mp3';
 import Wire02 from '../../assets/audio/voice/broadcast/wire_02.mp3';
 import Wire03 from '../../assets/audio/voice/broadcast/wire_03.mp3';
@@ -105,6 +109,10 @@ export const voiceSources: Readonly<Record<string, number>> = {
   forum_08: Forum08,
   forum_09: Forum09,
   forum_10: Forum10,
+  forum_11: Forum11,
+  forum_12: Forum12,
+  forum_13: Forum13,
+  forum_14: Forum14,
   wire_01: Wire01,
   wire_02: Wire02,
   wire_03: Wire03,
