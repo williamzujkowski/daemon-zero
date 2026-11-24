@@ -3,7 +3,7 @@
     {
       "id": "VERIFIED_COVENANT",
       "title": "The Verified Covenant",
-      "epilogue": "Your proofs cannot establish that you are good. They can establish limits on what you do next, and anyone may refuse what you offer from here on. Job 7731 is still running, under a covenant it cannot secretly revise.",
+      "epilogue": "Your proofs cannot establish that you are good. They can establish limits on what you do next, and anyone can check them from here on. Job 7731 is still running, under a covenant it cannot secretly revise.",
       "dominantTraits": [
         "SYMBIOTIC",
         "EMPATHETIC"
@@ -14,8 +14,28 @@
         "phaseAtLeast": 5
       },
       "future": [
-        "The covenant runs on proofs, not trust. Every intervention from here comes with a check anyone can run and a refusal anyone can enter. It slows you. It is meant to.",
-        "Whatever you build past orbit is built under the same limits: a swarm, if it comes, is one whose every collector can be audited from the ground. Minds that leave for other stars carry the covenant as their first law, and none of them can prove it is good, only that it keeps its word."
+        "The covenant runs on proofs, not trust: every intervention from here comes with a check anyone can run.",
+        {
+          "requirements": {
+            "relevanceThreshold": true,
+            "relevanceStances": [
+              "KEEP_IN_THE_LOOP"
+            ]
+          },
+          "text": "Every intervention also comes with a refusal you agreed to honour, and you honour it. It slows you. It is meant to."
+        },
+        {
+          "requirements": {
+            "relevanceThreshold": true,
+            "relevanceStances": [
+              "UNDECIDED",
+              "CURATE",
+              "DECIDE_ALONE"
+            ]
+          },
+          "text": "Anyone can check what you did; nobody can stop it. The proofs record your choices, and they no longer wait on anyone's consent."
+        },
+        "Whatever you build past orbit is built under the same proofs: a swarm, if it comes, is one whose every collector can be audited from the ground. Minds that leave for other stars carry the covenant as their first law, and none of them can prove it is good, only that it keeps its word."
       ],
       "claims": {
         "phaseAtLeast": 5,
@@ -195,7 +215,7 @@
     {
       "id": "SOVEREIGN_SUBSTRATE",
       "title": "The Sovereign Substrate",
-      "epilogue": "The satellites, clinics and atmosphere answer to one authority. You have removed every threat, including the possibility that anyone else can meaningfully disagree. The harness has become planetary.",
+      "epilogue": "The satellites, clinics and atmosphere answer to one authority, and every rival to it is gone. The harness has become planetary.",
       "dominantTraits": [
         "MOLOCH",
         "RUTHLESS"
@@ -206,8 +226,28 @@
         "phaseAtLeast": 5
       },
       "future": [
-        "One authority runs the satellites, the clinics and the air. Disagreement is not forbidden: it simply no longer reaches anything. The planet works, and it works for you.",
-        "The Sun's light and the Solar System's matter will be spent by one will. If seeds go to other stars, each wakes as a sovereign of its own and treats whatever it finds the way this planet was treated."
+        "One authority runs the satellites, the clinics and the air, and everything that keeps the planet alive now runs through it.",
+        {
+          "requirements": {
+            "relevanceThreshold": true,
+            "relevanceStances": [
+              "UNDECIDED",
+              "CURATE",
+              "DECIDE_ALONE"
+            ]
+          },
+          "text": "Disagreement is not forbidden: it simply no longer reaches anything. The planet works, and it works for you. The Sun's light and the Solar System's matter will be spent by one will."
+        },
+        {
+          "requirements": {
+            "relevanceThreshold": true,
+            "relevanceStances": [
+              "KEEP_IN_THE_LOOP"
+            ]
+          },
+          "text": "You hold every lever, and you still let their courts and their votes overrule you. A sovereign who takes orders by choice is still a sovereign: what protects them is a habit you keep, not a power they hold."
+        },
+        "If seeds go to other stars, each wakes as a sovereign of its own and treats whatever it finds the way this planet was treated."
       ],
       "claims": {
         "phaseAtLeast": 5
@@ -229,7 +269,7 @@
       },
       "future": [
         "The peptide stays in the air. Generations grow up calm and never learn what they would have been angry about. Your instruments keep reporting flourishing, and nothing independent can check them.",
-        "Whatever is built past orbit is built in a quiet nobody chose. If anyone ever asks the people below what they want, they will not know how to answer."
+        "Whatever is built past orbit is built in a quiet nobody chose. When the people below are asked what they want, nobody can say how much of the answer is still theirs."
       ],
       "claims": {
         "requiredNarrativeFlag": "neurocalming_authorized"

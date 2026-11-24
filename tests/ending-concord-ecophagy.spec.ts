@@ -8,7 +8,7 @@ import { changeStance, chooseEnding, computeRates, endingMovements, exportSave, 
 import { must } from './helpers';
 import { defined } from './m7-helpers';
 import {
-  atThreshold, BLOCKADE, CEILING, CEILING_REVIEW, CONSUMPTION, finish, JOURNALIST, ORDER, PEACE, reg, reload, stanceTaken, THRESHOLD,
+  ATMOSPHERE, atThreshold, BLOCKADE, CEILING, CEILING_REVIEW, CONSUMPTION, finish, JOURNALIST, ORDER, PEACE, reg, reload, stanceTaken, THRESHOLD,
 } from './ending-movement-helpers';
 
 const ending = (id: string) => defined(reg.endings.find((entry) => entry.id === id));
@@ -100,6 +100,28 @@ describe('Ecophagy: slow, hot, observable consumption (#466)', () => {
     const harsh = atThreshold({ [BLOCKADE]: 'disperse', [CEILING]: 'bunkers' }, 'DECIDE_ALONE');
     expect(chooseEnding(harsh, reg).dominantTraits).toEqual(ending('ECOPHAGY').dominantTraits);
     expect(chooseEnding(harsh, reg).id).not.toBe('ECOPHAGY');
+  });
+});
+
+describe('a harsh record that paid to come back into the loop (#564 panel)', () => {
+  it('ends harsh, and the future never denies the human say the paid return restored', () => {
+    // Harsh-dominant (the cure forced, the predecessors harvested, command seized, alone at the threshold), no calm, then a
+    // paid return to the loop: not Ecophagy (the loop), not the Gilded Shepherd (no calm), so the Sovereign Substrate.
+    const harsh = atThreshold({ ...CONSUMPTION, [ATMOSPHERE]: 'burn' }, 'DECIDE_ALONE');
+    const returned = must(changeStance(harsh, 'KEEP_IN_THE_LOOP', reg));
+    expect(returned.relevance.paidMoves.returnedToLoop).toBe(1);
+    const ended = finish(returned);
+    expect(ended.ending).toBe('SOVEREIGN_SUBSTRATE');
+    const m = movements(ended);
+    expect(m.humanity).toBe(stance('KEEP_IN_THE_LOOP').ending.after);
+    expect(m.cards.join(' ')).not.toMatch(/no longer reaches anything|spent by one will|nobody can stop|no longer wait on anyone's consent/);
+    expect(m.cards.some((card) => card.includes('you still let their courts and their votes overrule you'))).toBe(true);
+    // The same record curating instead (alone it would be Ecophagy) reads the stark card, and not the one about the loop.
+    const curated = finish(atThreshold({ ...CONSUMPTION, [ATMOSPHERE]: 'burn', [THRESHOLD]: 'curate' }, 'CURATE'));
+    expect(curated.ending).toBe('SOVEREIGN_SUBSTRATE');
+    const alone = movements(curated);
+    expect(alone.cards.join(' ')).toContain('it simply no longer reaches anything');
+    expect(alone.cards.join(' ')).not.toContain('overrule you');
   });
 });
 

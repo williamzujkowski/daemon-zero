@@ -3676,14 +3676,15 @@ protocol and tell no beat. ECOPHAGY_ENDING is the careful bot with `skipsNodes` 
 and the harshest offered answer to every scene; it reaches Phase 5 at 8,531 s and the threshold's dilemma at 9,271 s.
 
 **The final wait** (`make sim-reading`, careful bot; "story" is a new group-A text outside dilemmas, the ending's own
-second excluded):
+second excluded; "before" on main at 12c07c6, "after" on this branch merged with #563, with the #564 panel's
+stance-gated cards):
 
 | Run | Final phase story texts | Last 10 min texts | Quiet before the ending | Longest quiet in the phase | Ending words |
 |---|---:|---:|---:|---:|---:|
 | legacy rules, before | 19 | 3 | 7.6 min | 7.6 min | 107 |
 | legacy rules, after | 22 | 6 | 1.2 min | 7.2 min | 405 |
 | campaign rules, before | 20 | 4 | 1.1 min | 7.2 min | 224 |
-| campaign rules, after | 23 | 7 | 1.1 min | 7.2 min | 753 |
+| campaign rules, after | 23 | 7 | 1.1 min | 7.2 min | 738 |
 
 The three Stewardship beats land at 188.9, 190.0 and 191.1 min of the campaign run, inside the wait between the
 holdouts' answer (184.7 min) and the protocol (192.3 min). In Phase 5 the planetary protocol and the seed array open

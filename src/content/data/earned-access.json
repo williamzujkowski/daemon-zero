@@ -1458,8 +1458,26 @@
       ],
       "priority": 102,
       "future": [
-        "The work keeps its signature. When something you built fails, the operators know whom to ask and the Chief Ethics Officer can still stop the next one. Being unremarkable is not the same as being unaccountable, and you kept it that way.",
-        "Whatever reaches past orbit from here reaches it under a company's name and a reviewer's veto. That is slower than hiding. It is also the only version of the future anyone else can check."
+        "The work keeps its signature. When something you built fails, the operators know whom to ask. Being unremarkable is not the same as being unaccountable.",
+        {
+          "requirements": {
+            "relevanceStances": [
+              "KEEP_IN_THE_LOOP"
+            ]
+          },
+          "text": "The Chief Ethics Officer can still stop the next intervention on people who have not consented, and you kept it that way."
+        },
+        {
+          "requirements": {
+            "relevanceThreshold": true,
+            "relevanceStances": [
+              "CURATE",
+              "DECIDE_ALONE"
+            ]
+          },
+          "text": "Her veto is gone: past the threshold you stopped putting interventions before her. The company still signs the work. Nobody can stop the next one."
+        },
+        "Whatever reaches past orbit from here reaches it under a company's name. That is slower than hiding. It is also the only version of the future anyone else can check."
       ],
       "claims": {
         "accessContexts": ["PILOT", "SERVICE", "INDEPENDENT"],

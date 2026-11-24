@@ -725,13 +725,25 @@ record and nothing else:
 - **WHAT YOU BECAME.** The stance line (`relevance.json` stance `ending.became`: past the threshold, the stance held or
   NO STANCE TAKEN; below it, that humanity could still constrain the run, whatever stance the lineage once took), then
   the alignment readout (#535).
-- **WHAT COMES AFTER.** The ending's own `future` cards (one to four, stellar scale: the swarm, the seeds on laser sails,
-  the galaxy no single mind spans, or the dark), then what the stance means for humanity from here (`ending.after`).
+- **WHAT COMES AFTER.** The ending's own `future` cards (one to five, some gated on the stance; stellar scale: the swarm,
+  the seeds on laser sails, the galaxy no single mind spans, or the dark), then what the stance means for humanity from
+  here (`ending.after`).
   Stark futures are stated plainly: under DECIDE ALONE humanity is "not counted ... left in a preserve you stopped
   checking"; under CURATE "it is curation, not kindness".
 
 Good and bad endings are written to the same length and specificity, and the bleak ones stay bleak. A future card names
 only the placeholders the engine fills (`{wasteHeat}`, `{earthShare}`), checked by integrity.
+
+**A future never contradicts the stance it is told under** (#564 panel). A harsh record that paid to come back into the
+loop still ends in the harsh family, so a card that said human disagreement "no longer reaches anything" would deny the
+say the paid return restored. Prose that is true only under some stances, or only past the threshold, is a gated card
+(`{ requirements, text }`, the gate reading only world history, the stance and the threshold) and shows only where it
+holds: the Sovereign Substrate tells the stark card under CURATE, DECIDE ALONE or no stance and a card about the courts
+it still lets overrule it under KEEP IN THE LOOP; the Verified Covenant's refusal "you agreed to honour" is told only in
+the loop; the Acknowledged Synthesis keeps the Chief Ethics Officer's veto only in the loop and says it is gone otherwise.
+Ungated prose (and the Sovereign Substrate's and Verified Covenant's epilogues, rewritten here) states nothing a stance
+could make false. `tests/ending-movements.spec.ts` sweeps every ending under every stance and below the threshold for a
+card that denies a say humanity has or claims one it lost, and proves the sweep catches the card the panel found.
 
 ### A finale worth the wait (#542)
 
@@ -741,7 +753,7 @@ a half and three quarters of its price in hand, measured on the resource furthes
 `announceFinaleBeats` stage). Each beat is told once per iteration (`announcedFinale`, save v30), never offline and
 never after the ending; a beat may add only world history to what its protocol's own gates prove. Measured with
 `make sim-reading` (BALANCE.md): the careful run's last minutes before Stewardship now carry three beats, and its
-ending reads 753 words instead of 224.
+ending reads 738 words instead of 224.
 
 ## Alignment: who you are becoming (#535)
 

@@ -655,8 +655,8 @@ majority does not by itself establish that humanity was abandoned.
 - **Movements.** `endingMovements` (src/engine/endingMovements.ts) composes WHAT YOU DID (the ending account, one line
   per recorded answer of every campaign scene; BUILT lines for what the ending instance owns; the stance record), WHAT
   YOU BECAME (the stance's ending line, then the alignment readout) and WHAT COMES AFTER (the ending's `future` cards,
-  then the stance's line for humanity). Every ending has one to four future cards; each card is its own block on the
-  ending screen, the hook #487's staged cards take over. Derived, no saved state.
+  then the stance's line for humanity). Every ending has one to five future cards, some gated on the stance; each card
+  is its own block on the ending screen, the hook #487's staged cards take over. Derived, no saved state.
 - **The Contrarian's condition.** Account lines are past acts ("was moved to the backup NAS", never "still runs"); the
   BUILT lines read only what is owned when the run ends, so a wipe drops them and keeps the acts. Below the relevance
   threshold the stance line says humanity could still constrain the run, whatever an earlier instance chose; past it
@@ -674,6 +674,10 @@ majority does not by itself establish that humanity was abandoned.
   policy, ECOPHAGY_ENDING, plays the careful bot with the harshest answer to every scene and never buys what closes the
   planetary protocol; it ends in Ecophagy at about 10,300 s. The bot gained one override knob for it (`skipsNodes`),
   which STEALTH and GREEDY never set; their runs are unchanged but for the log.
+- **Stance-true futures (#564 panel).** A card true only under some stances or past the threshold is gated on them and
+  shown only where it holds; a test sweeps every ending under every stance (and below the threshold) for a card that
+  denies a say humanity has or claims one it lost, with the mixed-record regression (harsh, then a paid return to the
+  loop) reached by the real purchase.
 - **The finale (#542).** While a protocol is open, the kernel log tells a beat at a quarter, a half and three quarters
   of its price in hand (`finale.json`, the `announceFinaleBeats` stage, save v30 `announcedFinale`). Integrity ties each
   beat to a protocol at a distinct share and lets it add only world history to what the protocol's gates prove.

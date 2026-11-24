@@ -6,6 +6,7 @@
  */
 import type { ContentRegistry } from '../content/registry';
 import type { Ending } from '../content/schema';
+import { futureCardText } from '../content/schemaEnding';
 import type { Stance } from '../content/schemaStance';
 import { groupDigits } from './amount';
 import { quantityReadout } from './physicalUnits';
@@ -21,7 +22,7 @@ export interface EndingMovements {
   did: string[];
   /** WHAT YOU BECAME's stance line (the alignment reading is alignmentView's). */
   stance: string;
-  /** WHAT COMES AFTER: the ending's future cards, in reading order (a hook for staged cards, #487). */
+  /** WHAT COMES AFTER: the ending's future cards whose gates hold, in reading order (a hook for staged cards, #487). */
   cards: string[];
   /** WHAT COMES AFTER's closing line: what the stance means for humanity from here. */
   humanity: string;
@@ -71,7 +72,9 @@ export function endingMovements(s: GameState, ending: Ending, reg: ContentRegist
   return {
     did: [...endingAccount(s, reg), ...built, ...stanceRecordLines(s, reg)],
     stance: stance.became,
-    cards: ending.future.map((card) => fmt(card, vars)),
+    // A gated card is told only while its gate holds: prose true only under some stances never meets another (#564).
+    cards: ending.future.filter((card) => typeof card === 'string' || meetsRequirements(s, card.requirements, reg))
+      .map((card) => fmt(futureCardText(card), vars)),
     humanity: stance.after,
   };
 }

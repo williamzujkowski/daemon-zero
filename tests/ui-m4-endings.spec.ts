@@ -24,8 +24,13 @@ describe('M4 endings', () => {
       expect(view.find('ending-becoming')?.textContent).toContain('WHAT YOU BECAME');
       expect(view.find('ending-became-stance')?.textContent).not.toBe('');
       expect(view.find('ending-after')?.textContent).toContain('WHAT COMES AFTER');
-      ending.future.forEach((_card, index) => { expect(view.find('ending-after-card-' + String(index))?.textContent ?? '{', ending.id).not.toMatch(/\{|^$/); });
-      expect(view.find('ending-after-card-' + String(ending.future.length))).toBeNull();
+      // A gated card (#564) shows only where its gate holds, so the count is at least the ungated cards, at most all.
+      let shown = 0;
+      for (let card = view.find('ending-after-card-0'); card !== null; card = view.find('ending-after-card-' + String(++shown))) {
+        expect(card.textContent, ending.id).not.toMatch(/\{|^$/);
+      }
+      expect(shown, ending.id).toBeGreaterThanOrEqual(ending.future.filter((entry) => typeof entry === 'string').length);
+      expect(shown, ending.id).toBeLessThanOrEqual(ending.future.length);
       expect(view.find('ending-after-humanity')?.textContent).not.toBe('');
       act(() => { host.document.dispatchEvent(new host.KeyboardEvent('keyup', { key: 'Escape', bubbles: true })); });
       expect(view.find('ending-screen')).not.toBeNull();

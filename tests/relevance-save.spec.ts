@@ -12,7 +12,7 @@ const p5 = (): GameState => deserialize(readFileSync('tests/fixtures/pre-scale-v
 const entry = { iteration: 1, atSimSec: 12, from: null, stance: 'DECIDE_ALONE', via: 'THRESHOLD' } as const;
 
 describe('save v29 (#536)', () => {
-  it('is the current version', () => {
+  it('is followed only by the finale beats told (#542, v30)', () => {
     expect(SCHEMA_VERSION).toBe(30);
   });
 

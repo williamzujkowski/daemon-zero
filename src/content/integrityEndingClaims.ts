@@ -5,7 +5,10 @@
  */
 import type { ContentRegistry, RegistryNode } from './registry';
 import type { Ending, Requirements } from './schema';
+import { futureCardText } from './schemaEnding';
 import { FUTURE_PLACEHOLDERS } from './schemaFinale';
+import { checkRequirements } from './integrityRequirements';
+import { requirementsInScope } from './requirementScopes';
 
 type ListKey = 'nodes' | 'resolvedDilemmas' | 'forbidsNodes' | 'forbidsResolvedDilemmas' | 'forbidsCampaignFacts' | 'forbidsInheritedFacts'
   | 'forbiddenNarrativeFlags' | 'campaignObligations';
@@ -77,7 +80,29 @@ export function checkEndingClaims(reg: ContentRegistry, prove: ProveFromNode): s
 
 /** A future card names only the placeholders the engine fills (endingMovements.ts), so no card is shown half-written. */
 export function checkFuturePlaceholders(reg: ContentRegistry): string[] {
-  return reg.endings.flatMap((ending) => ending.future.flatMap((card) => [...card.matchAll(/\{([a-zA-Z]+)\}/g)]
+  return reg.endings.flatMap((ending) => ending.future.flatMap((card) => [...futureCardText(card).matchAll(/\{([a-zA-Z]+)\}/g)]
     .map((match) => match[1] ?? '').filter((name) => !FUTURE_PLACEHOLDERS.includes(name))
     .map((name) => `${ending.id}: future names {${name}}, which the engine does not fill`)));
+}
+
+/** Besides world history, a card may read the one lasting fact of the ending instance its prose turns on (#564). */
+const CARD_GATES: ReadonlySet<keyof Requirements> = new Set(['relevanceThreshold']);
+
+/**
+ * Gated future cards (#564 panel): each gate reads only what cannot change once the run has ended (world history, the
+ * stance, the threshold), and at least one card is ungated, so WHAT COMES AFTER is never empty.
+ */
+export function checkFutureGates(reg: ContentRegistry): string[] {
+  return reg.endings.flatMap((ending) => {
+    const owner = `${ending.id} future`;
+    const problems = ending.future.some((card) => typeof card === 'string') ? [] : [`${owner}: needs at least one ungated card`];
+    for (const card of ending.future) {
+      if (typeof card === 'string') continue;
+      problems.push(...checkRequirements(reg, owner, card.requirements));
+      const history = Object.keys(requirementsInScope(card.requirements, 'context'));
+      const stray = Object.keys(card.requirements).filter((key) => !history.includes(key) && !CARD_GATES.has(key as keyof Requirements));
+      if (stray.length > 0) problems.push(`${owner}: a card's gate may read only world history and the threshold, not ${stray.join(', ')}`);
+    }
+    return problems;
+  });
 }

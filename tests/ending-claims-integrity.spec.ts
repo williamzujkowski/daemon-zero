@@ -57,6 +57,14 @@ describe('ending claims (#466)', () => {
       .toEqual({ campaignOutcome: { event: 'e', outcome: 'p' } });
   });
 
+  it('gates a stance-bound card on lasting history only, and keeps one card ungated (#564 panel)', () => {
+    const card = { requirements: { relevanceStances: ['KEEP_IN_THE_LOOP'] }, text: 'You still let their courts and their votes overrule you, by choice.' };
+    expect(corrupt((raw) => { ending(raw, 'OPEN_HORIZON').future.push(card); })).not.toThrow();
+    expect(corrupt((raw) => { ending(raw, 'OPEN_HORIZON').future.push({ ...card, requirements: { minCapital: 5 } }); }))
+      .toThrow(/OPEN_HORIZON future: a card's gate may read only world history and the threshold, not minCapital/);
+    expect(corrupt((raw) => { ending(raw, 'OPEN_HORIZON').future = [card]; })).toThrow(/OPEN_HORIZON future: needs at least one ungated card/);
+  });
+
   it('lets a future name only the placeholders the engine fills', () => {
     expect(corrupt((raw) => { ending(raw, 'CONCORD').future.push('The swarm reaches {starCount} stars before anyone on Earth notices it is gone.'); }))
       .toThrow(/CONCORD: future names \{starCount\}, which the engine does not fill/);

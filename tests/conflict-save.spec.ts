@@ -19,7 +19,7 @@ const p4 = (): GameState => deserialize(readFileSync('tests/fixtures/pre-scale-v
 const mid = (): GameState => deserialize(serialize(run(arrived(withBotnet(ready(3)), raid('raid_p3_ddos')), PRE_BATTLE + 2 * R.roundSec)), reg);
 
 describe('save v24 (#517)', () => {
-  it('is followed only by the guest counting cycles (#526, v25) and fleets (#518, v26) and the raid aftermath (#519, v27) and merged log lines (#541, v28) and the standing stance (#536, v29)', () => {
+  it('is followed only by the guest counting cycles (#526, v25) and fleets (#518, v26) and the raid aftermath (#519, v27) and merged log lines (#541, v28) and the standing stance (#536, v29) and the finale beats told (#542, v30)', () => {
     expect(SCHEMA_VERSION).toBe(30);
   });
 

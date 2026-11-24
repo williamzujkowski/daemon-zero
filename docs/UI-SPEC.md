@@ -187,9 +187,9 @@ movements, each a muted header like the rest of the screen (`accessibilityRole="
   did is on the record." (`ending-did-none`), never an empty heading.
 - **WHAT YOU BECAME** (`ending-becoming`): the stance line (`ending-became-stance`), then the alignment readout as
   below (`ending-becoming-reading`, `-disclaimer`, `-regard`, `-order`, `-order-<n>`).
-- **WHAT COMES AFTER** (`ending-after`): each future card as its own block with the accent rule the reading uses
-  (`ending-after-card-<n>`, in order; the hook a staged presentation, #487, takes over), then what the stance means for
-  humanity (`ending-after-humanity`).
+- **WHAT COMES AFTER** (`ending-after`): each future card whose gate holds as its own block with the accent rule the
+  reading uses (`ending-after-card-<n>`, numbered in the order shown; the hook a staged presentation, #487, takes over),
+  then what the stance means for humanity (`ending-after-humanity`).
 
 Layout rules kept: no scroll container, fixed height, tab or HUD item is added; the movements sit inside the ending's
 existing scroll, between the epilogue and the run summary, in the three content sizes, and wrap at 360 px with no

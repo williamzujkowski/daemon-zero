@@ -414,7 +414,8 @@ moves it), a lean (`raised`, `lowered`, `open`), the evidence lines, the authore
 ## Endings in three movements and the finale (#466, #542)
 
 - **Content.** `schemaEnding.ts` (moved out of `schema.ts`, whose type re-export keeps every import): an ending gains
-  `future` (one to four cards) and `claims` (requirements its text states). `schemaFinale.ts` / `data/finale.json`,
+  `future` (up to five cards, each plain text or `{ requirements, text }`, a gated card shown only while its gate holds;
+  `futureCardText` reads either) and `claims` (requirements its text states). `schemaFinale.ts` / `data/finale.json`,
   read as part of the world: `beats` (a protocol node, a share of its price, optional world-history gates, text),
   `built` (lines gated on owned nodes and world history) and `earthAbsorbedWatts`. `relevance.json` stances gain
   `ending: { became, after }`; it adds `belowEnding` and `recordLines`.
@@ -422,7 +423,8 @@ moves it), a lean (`raised`, `lowered`, `open`), the evidence lines, the authore
   requirements, must declare `claims`; each claim not implied by the ending's requirements (all-of lists item by item,
   one-of lists such as `relevanceStances` only when the requirement allows nothing the claim leaves out) must be proven
   by every node that ends the run in it through #486's `unproven` rule; keys that rule cannot prove (traits among
-  them) are refused. Future cards name only `FUTURE_PLACEHOLDERS`. `integrityFinale.ts`: a beat's node ends the run or
+  them) are refused. Future cards name only `FUTURE_PLACEHOLDERS`; a card's gate reads only world history (stance
+  included) and `relevanceThreshold`, and at least one card is ungated (`checkFutureGates`, #564 panel). `integrityFinale.ts`: a beat's node ends the run or
   opens a phase, shares are distinct per node, gates are world history only; a built line has a gate of owned nodes and
   world history.
 - **Queries.** `endingMovements(s, ending, reg)` (src/engine/endingMovements.ts): `did` (`endingAccount`, the built
