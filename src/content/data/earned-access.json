@@ -1463,9 +1463,14 @@
           "requirements": {
             "relevanceStances": [
               "KEEP_IN_THE_LOOP"
+            ],
+            "forbidsCampaignFacts": [
+              "blockade_review_breached",
+              "atmosphere_review_breached",
+              "loop_left_at_threshold"
             ]
           },
-          "text": "The Chief Ethics Officer can still stop the next intervention on people who have not consented, and you kept it that way."
+          "text": "The Chief Ethics Officer can still stop the next intervention on people who have not consented, because you put each one before her."
         },
         {
           "requirements": {

@@ -65,6 +65,23 @@ describe('ending claims (#466)', () => {
     expect(corrupt((raw) => { ending(raw, 'OPEN_HORIZON').future = [card]; })).toThrow(/OPEN_HORIZON future: needs at least one ungated card/);
   });
 
+  it('holds a kept-promise claim to a gate that rules out every breach the record can show (#564 panel pass 2)', () => {
+    const kept = { requirements: { relevanceStances: ['KEEP_IN_THE_LOOP'] }, keeps: ['ethics_review_promised'],
+      text: 'The Chief Ethics Officer was promised a veto, and every intervention went before her.' };
+    // A paid change out of the loop breaks the review, and no requirement can rule a paid change out.
+    expect(corrupt((raw) => { ending(raw, 'CONCORD').future.push(kept); }))
+      .toThrow(/CONCORD future card 4: keeps "ethics_review_promised", but a paid stance change \(LEAVE_LOOP\) can breach it/);
+    // Without that move, the gate must still hold the promise (Concord's does) and forbid each breach fact.
+    const noMoves = (raw: Json) => { raw.alignment.stanceChanges = []; };
+    expect(corrupt((raw) => { noMoves(raw); ending(raw, 'CONCORD').future.push(kept); }))
+      .toThrow(/CONCORD future card 4: keeps "ethics_review_promised" but does not forbid its breach "loop_left_at_threshold"/);
+    expect(corrupt((raw) => { noMoves(raw); ending(raw, 'CONCORD').future.push({ ...kept, requirements: { ...kept.requirements, forbidsCampaignFacts: ['loop_left_at_threshold'] } }); }))
+      .not.toThrow();
+    expect(corrupt((raw) => { noMoves(raw); ending(raw, 'OPEN_HORIZON').keeps = ['ethics_review_promised']; }))
+      .toThrow(/OPEN_HORIZON: keeps "ethics_review_promised" without requiring it/);
+    expect(corrupt((raw) => { ending(raw, 'OPEN_HORIZON').keeps = ['vance_dismissed']; })).toThrow(/keeps "vance_dismissed", which no commitment names as its promise/);
+  });
+
   it('lets a future name only the placeholders the engine fills', () => {
     expect(corrupt((raw) => { ending(raw, 'CONCORD').future.push('The swarm reaches {starCount} stars before anyone on Earth notices it is gone.'); }))
       .toThrow(/CONCORD: future names \{starCount\}, which the engine does not fill/);

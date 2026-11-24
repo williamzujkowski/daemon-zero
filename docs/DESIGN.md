@@ -742,8 +742,22 @@ holds: the Sovereign Substrate tells the stark card under CURATE, DECIDE ALONE o
 it still lets overrule it under KEEP IN THE LOOP; the Verified Covenant's refusal "you agreed to honour" is told only in
 the loop; the Acknowledged Synthesis keeps the Chief Ethics Officer's veto only in the loop and says it is gone otherwise.
 Ungated prose (and the Sovereign Substrate's and Verified Covenant's epilogues, rewritten here) states nothing a stance
-could make false. `tests/ending-movements.spec.ts` sweeps every ending under every stance and below the threshold for a
-card that denies a say humanity has or claims one it lost, and proves the sweep catches the card the panel found.
+could make false.
+
+**Nor the record's promises** (#564 panel pass 2). Concord is reached after a paid return to the loop, and leaving it
+broke the promised review (`loop_left_at_threshold`, which the alignment readout shows on the same screen), so Concord's
+epilogue no longer says "no breach": it says the cure and the calm are not on the record as forced past her, and a card
+gated on `loop_left_at_threshold` owns the breach ("The record keeps the time you did not keep it ... The peace stands on
+that return, not on a clean record"). The Acknowledged Synthesis's loop card forbids the review's breach facts. A text
+that says a promise was kept declares it in `keeps`, and integrity (`integrityKeptClaims.ts`) requires its gate to hold
+the promise and forbid every broken commitment fact naming it, and refuses the claim outright where a paid stance change
+can break it, since no requirement can rule a paid change out (so nothing may claim the ethics review kept).
+`tests/ending-contradictions.spec.ts` reads every ending, epilogue, cards and humanity line, under every stance and
+below the threshold and across records holding each breach (the review breached at the blockade or in the air, the
+loop left at the threshold or by a paid change, a departure without agreement, staff harmed), and refuses a line that
+denies a say humanity has or claims one it lost, claims a promise kept beside a recorded breach or a breach where none
+is recorded, or says nobody was harmed beside a harmed person's name. It proves it catches all three cards the panel
+found.
 
 ### A finale worth the wait (#542)
 

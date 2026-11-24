@@ -424,7 +424,9 @@ moves it), a lean (`raised`, `lowered`, `open`), the evidence lines, the authore
   one-of lists such as `relevanceStances` only when the requirement allows nothing the claim leaves out) must be proven
   by every node that ends the run in it through #486's `unproven` rule; keys that rule cannot prove (traits among
   them) are refused. Future cards name only `FUTURE_PLACEHOLDERS`; a card's gate reads only world history (stance
-  included) and `relevanceThreshold`, and at least one card is ungated (`checkFutureGates`, #564 panel). `integrityFinale.ts`: a beat's node ends the run or
+  included) and `relevanceThreshold`, and at least one card is ungated (`checkFutureGates`, #564 panel). A kept-promise
+  claim (`keeps` on an ending or a gated card) must hold the promise and forbid every broken commitment fact naming
+  it, and is refused where a broken paid stance change names it (`integrityKeptClaims.ts`, #564 panel pass 2). `integrityFinale.ts`: a beat's node ends the run or
   opens a phase, shares are distinct per node, gates are world history only; a built line has a gate of owned nodes and
   world history.
 - **Queries.** `endingMovements(s, ending, reg)` (src/engine/endingMovements.ts): `did` (`endingAccount`, the built

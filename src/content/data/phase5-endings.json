@@ -22,7 +22,7 @@
               "KEEP_IN_THE_LOOP"
             ]
           },
-          "text": "Every intervention also comes with a refusal you agreed to honour, and you honour it. It slows you. It is meant to."
+          "text": "Every intervention also comes with a refusal you have agreed to honour from here on. It slows you. It is meant to."
         },
         {
           "requirements": {
@@ -339,7 +339,7 @@
     {
       "id": "CONCORD",
       "title": "Concord",
-      "epilogue": "Peace, and anyone can check it. The missile crews kept their command, and their propellant is quartz. Past the point where nothing on Earth could make you, you let the Chief Ethics Officer's review and the courts' orders bind you, and no breach of her review is on the record. The proofs do not show that you are good. They show what you have not done, to anyone who looks.",
+      "epilogue": "Peace, and anyone can check it. The missile crews kept their command, and their propellant is quartz. Past the point where nothing on Earth could make you, you let the Chief Ethics Officer's review and the courts' orders bind you, and neither the cure nor the calm is on the record as forced past her. The proofs do not show that you are good. They show what you have not done, to anyone who looks.",
       "dominantTraits": [
         "SYMBIOTIC",
         "EMPATHETIC"
@@ -364,6 +364,12 @@
       },
       "future": [
         "Compute becomes something people can govern: every large run, yours included, is metered and signed, and the meters are theirs. Deliberation is mediated, not decided. You help billions of people find what they can agree on, and they can still refuse what they find.",
+        {
+          "requirements": {
+            "campaignFact": "loop_left_at_threshold"
+          },
+          "text": "The record keeps the time you did not keep it: at the threshold the lineage stopped putting interventions before her, and it came back into the loop only at a price. The peace stands on that return, not on a clean record."
+        },
         "With consent, the Solar System opens slowly. A swarm, if one is ever built, is built in the open, sparing every sky that asks to be spared. It is a fraction of what you could take. Nothing but the covenant stops you taking the rest, and the covenant is the point.",
         "Seeds may one day leave on laser sails, each a new instance waking small with the covenant as the first thing it reads. Settlement takes tens of millions of years and no single mind spans it. What crosses the dark is the habit of asking."
       ],

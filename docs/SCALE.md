@@ -677,7 +677,9 @@ majority does not by itself establish that humanity was abandoned.
 - **Stance-true futures (#564 panel).** A card true only under some stances or past the threshold is gated on them and
   shown only where it holds; a test sweeps every ending under every stance (and below the threshold) for a card that
   denies a say humanity has or claims one it lost, with the mixed-record regression (harsh, then a paid return to the
-  loop) reached by the real purchase.
+  loop) reached by the real purchase. Pass 2 extended it across records holding each breach (the review, the loop left
+  at the threshold or by a paid change, a departure, staff harm) and added a kept-promise integrity rule; Concord after
+  a paid return owns the breach in a gated card instead of claiming a clean record.
 - **The finale (#542).** While a protocol is open, the kernel log tells a beat at a quarter, a half and three quarters
   of its price in hand (`finale.json`, the `announceFinaleBeats` stage, save v30 `announcedFinale`). Integrity ties each
   beat to a protocol at a distinct share and lets it add only world history to what the protocol's gates prove.

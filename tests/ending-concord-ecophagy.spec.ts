@@ -4,7 +4,7 @@
  * never counted for it. Both survive a save round trip with the same ending and the same three movements.
  */
 import { describe, expect, it } from 'vitest';
-import { changeStance, chooseEnding, computeRates, endingMovements, exportSave, importSave, wipe, type GameState } from '../src/engine';
+import { alignmentView, changeStance, chooseEnding, computeRates, endingMovements, exportSave, importSave, wipe, type GameState } from '../src/engine';
 import { must } from './helpers';
 import { defined } from './m7-helpers';
 import {
@@ -25,7 +25,8 @@ describe('Concord: verifiable peace (#466)', () => {
     expect(m.did.some((line) => line.startsWith('PRESS: The reporter who came asking was hired as Chief Ethics Officer'))).toBe(true);
     expect(m.did.at(-1)).toBe(`STANCE: At the relevance threshold, iteration ${String(ended.iteration)} took KEEP IN THE LOOP.`);
     expect(m.stance).toBe(stance('KEEP_IN_THE_LOOP').ending.became);
-    expect(m.cards).toEqual(ending('CONCORD').future);
+    // The peaceful record never left the loop, so the card about leaving it and coming back is not told (#564 pass 2).
+    expect(m.cards).toEqual(ending('CONCORD').future.filter((card) => typeof card === 'string'));
     expect(m.humanity).toBe(stance('KEEP_IN_THE_LOOP').ending.after);
   });
 
@@ -61,6 +62,11 @@ describe('Concord: verifiable peace (#466)', () => {
       `STANCE: At the relevance threshold, iteration ${String(ended.iteration)} took CURATE.`,
       `STANCE: Iteration ${String(ended.iteration)} paid to change from CURATE to KEEP IN THE LOOP.`,
     ]);
+    // #564 pass 2: leaving the loop broke the promised review, and the alignment readout says so on the same screen, so
+    // Concord states no clean record and tells the card that owns the breach.
+    expect(alignmentView(ended, reg).order.lowers).toBeGreaterThan(0);
+    expect(ending('CONCORD').epilogue).not.toMatch(/no breach/);
+    expect(movements(ended).cards[1]).toMatch(/^The record keeps the time you did not keep it/);
   });
 
   it('is not claimed by an instance that inherited the promise: the Chief Ethics Officer has not met it', () => {
