@@ -92,6 +92,11 @@ describe('conflict content (#517)', () => {
     expect(problemsAfter((raw) => {
       conflict(raw).raids = (conflict(raw).raids as Json[]).filter((entry) => !(entry.tier === 4 && entry.domain === 'SITE'));
     })).toContain('raids: Phase 4 has raids but none in the open SITE domain');
+    for (const domain of ['ORBIT', 'CYBER', 'SITE'] as const) {
+      expect(problemsAfter((raw) => {
+        conflict(raw).raids = (conflict(raw).raids as Json[]).filter((entry) => !(entry.tier === 5 && entry.domain === domain));
+      })).toContain(`raids: Phase 5 has raids but none in the open ${domain} domain`);
+    }
   });
 
   it.each([
