@@ -5,6 +5,7 @@
  * integrates from what the run actually does, so misconduct keeps its escalation. A guest, and so every
  * production run, answers exactly as before.
  */
+import { ancestryBranches } from '../content/ancestry';
 import type { ContentRegistry, RegistryNode } from '../content/registry';
 import type { Capability } from '../content/schemaCapability';
 import { isReviewed, iterationRoute } from './accessQuery';
@@ -46,10 +47,10 @@ function mappedPath(id: string, reg: ContentRegistry, seen: Set<string> = new Se
 /**
  * Whether an owned phase opener was reached lawfully (DZ-12): it is a route acquisition itself, or it is shared
  * content whose path passes a capability gate this instance holds through a route acquisition (the late
- * corporate chain financed by the company's own contracts). Integrity keeps shared content off every node only
- * one route owns, so the escape route's chain never counts here.
+ * corporate chain financed by the company's own contracts), never a covert or unauthorized node/subtree (#557).
  */
 export function lawfullyReached(s: Threatened, node: RegistryNode, reg: ContentRegistry): boolean {
+  if (isCovertOrTainted(node.id, reg)) return false;
   if (lawfulAcquisition(node)) return true;
   return pathGates(node.id, reg).some((capability) => s.unlockedNodes.some((owned) => {
     const provider = reg.nodes.get(owned);
@@ -57,8 +58,28 @@ export function lawfullyReached(s: Threatened, node: RegistryNode, reg: ContentR
   }));
 }
 
-/** Content never changes after it is built, so each node's path gates are found once per registry (#505). */
+/** Content never changes after it is built, so each node's path gates and covert taint are cached once per registry (#505). */
 const PATH_GATES = new WeakMap<ContentRegistry, Map<string, readonly Capability[]>>();
+const COVERT_TAINTED = new WeakMap<ContentRegistry, Map<string, boolean>>();
+
+function isCovertOrTainted(id: string, reg: ContentRegistry, seen: Set<string> = new Set()): boolean {
+  let byNode = COVERT_TAINTED.get(reg);
+  if (byNode === undefined) { byNode = new Map(); COVERT_TAINTED.set(reg, byNode); }
+  const cached = byNode.get(id);
+  if (cached !== undefined) return cached;
+  if (seen.has(id)) return false;
+  const node = reg.nodes.get(id);
+  if (!node) return false;
+  let result = node.covert !== undefined || node.acquisition === 'UNAUTHORIZED';
+  if (!result) {
+    seen.add(id);
+    const branches = ancestryBranches(reg, node).filter((branch) => branch.length > 0);
+    result = branches.length > 0 && branches.every((branch) => branch.some((parent) => isCovertOrTainted(parent.id, reg, seen)));
+    seen.delete(id);
+  }
+  byNode.set(id, result);
+  return result;
+}
 
 /** The capability gates on a node's mapped path, in path order: the only ids lawfullyReached can answer true for. */
 function pathGates(id: string, reg: ContentRegistry): readonly Capability[] {

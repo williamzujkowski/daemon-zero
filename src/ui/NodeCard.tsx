@@ -8,6 +8,7 @@ import { memo, Profiler, useEffect, useMemo } from 'react';
 import { Platform, useWindowDimensions } from 'react-native';
 import { useShallow } from 'zustand/react/shallow';
 import { CONTENT } from '../content';
+import { matchingAlternativeProvider } from '../content/ancestry';
 import type { RegistryNode } from '../content/registry';
 import type { Cost } from '../content/schema';
 import { couplings, isCampaignActive, isNodeAvailable, isNodeKnown, nodeBlindDescription, nodeText, probeTrace, rediscoveryCost, rediscoveryMultipliers, unlockNode, nodeUseBlocker, type Remembered } from '../engine';
@@ -87,6 +88,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
   const by = useGame(useShallow((game) => couplings(game, CONTENT)));
   // Stolen cycles in the guest, FLOP from the escape on (#526): a string that changes only with the phase.
   const unit = useComputeUnit();
+  const altMet = useGame((game) => matchingAlternativeProvider(game.unlockedNodes, node, CONTENT) !== null);
   const utility = useMemo(() => (known ? nodeUtilityText(node, surveillanceKnown, trace, by, unit) : ''), [known, node, surveillanceKnown, trace, by, unit]);
   return <View testID={'node-' + node.id} style={[theme.panel, known && { borderColor: palette.warning }]}>
     <Profiler id={node.id} onRender={recordNodeProfile}>
@@ -110,7 +112,7 @@ function NodeCard({ node }: { node: RegistryNode }) {
       <SettledFold settled={refusal !== null} summary="Card details" subject={title} testID={'node-' + node.id + '-fold'}>
       <Text testID={'node-' + node.id + '-cost'} accessibilityLabel={'Cost: ' + costText(cost, false, unit) + (known ? ' (remembered)' : '')} style={theme.muted}>Cost: {costText(cost, compact, unit)}{known ? ' (remembered)' : ''}</Text>
       <CostHint cost={cost} />
-      <RequirementHint requirements={{ ...node.requirements, nodes: [...node.prerequisites, ...(node.requirements?.nodes ?? [])] }} />
+      <RequirementHint requirements={{ ...node.requirements, nodes: [...(altMet ? [] : node.prerequisites), ...(node.requirements?.nodes ?? [])] }} />
       {refusal === null && <GrantNote node={node} />}
       <NodePurchase node={node} cost={cost} title={title} />
       {!isEnding && !known && <DisclosureText style={theme.text}>{blindDescription}</DisclosureText>}

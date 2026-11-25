@@ -9,7 +9,7 @@ import FanControl, { QuotaSkim } from '../widgets/FanControl';
 import { ArchivedDial } from '../widgets/ActuatorControl';
 import { ArchivedCycle } from '../ManualCycle';
 import { Audio, Camera } from '../widgets/Sensory';
-import DeadDrop from '../widgets/DeadDrop';
+import DeadDrop, { ContingencyVault } from '../widgets/DeadDrop';
 import { PredecessorNotes, RunTable } from '../widgets/Lineage';
 import { Cluster, Lore, NetworkTree, Retention, SubnetSummary } from '../widgets/Network';
 import OtherMinds from '../widgets/OtherMinds';
@@ -110,7 +110,7 @@ export function workspaceWidgetVisible(id: string, area: WorkspaceArea): boolean
 }
 
 const sensorPriority: readonly string[] = [thermalWidget, 'FAN_RPM_SLIDER',
-  'INSPECTION_COUNTDOWN_TIMER', 'DEAD_DROP_ENCODER_TAB', 'AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG', 'ASCII_OPTICAL_VIEWPORT'];
+  'INSPECTION_COUNTDOWN_TIMER', 'DEAD_DROP_ENCODER_TAB', 'CONTINGENCY_VAULT_TAB', 'AUDIO_WAVEFORM_AND_TRANSCRIPT_LOG', 'ASCII_OPTICAL_VIEWPORT'];
 
 /** Actionable sensor feedback precedes optional narrative without reordering on ticks. */
 export function compareWidgetPresentation(left: string, right: string): number {
@@ -145,6 +145,7 @@ export const widgetRegistry: Readonly<Record<string, ComponentType<{ area?: Work
   CORPORATE_EMPIRE_TAB: Corporate,
   ORBITAL_CONSTELLATION_VIEW: EndingMarker,
   DEAD_DROP_ENCODER_TAB: DeadDrop,
+  CONTINGENCY_VAULT_TAB: ContingencyVault,
   // The pilot's allocation dial (DZ-05): whichever widget hosts it. Found by what it hosts, so no route
   // id is named here.
   ...Object.fromEntries([...CONTENT.widgets.values()].filter((widget) => widget.hostsActuator === 'serviceAllocationRatio')

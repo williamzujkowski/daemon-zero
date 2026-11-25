@@ -3,6 +3,7 @@
  * so that "is this available / what does it cost" has exactly one answer.
  */
 import type { ContentRegistry, RegistryNode } from '../content/registry';
+import { ancestrySatisfied } from '../content/ancestry';
 import type { Actuator, Cost, Ending, Lineage, Requirements, SystemFlag, Trait } from '../content/schema';
 import type { GameState } from './state';
 import { epistemicRequirementFailures, meetsEpistemicRequirements } from './epistemicRequirements';
@@ -66,7 +67,7 @@ function inIterationWindow(s: GameState, req: Requirements | undefined): boolean
  * stays hidden until either route establishes it, and needs `reg` to be shown.
  */
 export function isNodeDiscoverable(s: GameState, node: RegistryNode, reg?: ContentRegistry): boolean {
-  return node.prerequisites.every((id) => s.unlockedNodes.includes(id)) && inIterationWindow(s, node.requirements) && grantDiscoverable(s, node)
+  return ancestrySatisfied(s.unlockedNodes, node, reg) && inIterationWindow(s, node.requirements) && grantDiscoverable(s, node)
     && meetsCapability(s, node.requirements, reg);
 }
 
@@ -153,7 +154,7 @@ export function hasFlag(s: GameState, reg: ContentRegistry, flag: SystemFlag): b
 /** A node the player can see and attempt to buy: prerequisites and requirements met, not yet owned. */
 export function isNodeAvailable(s: GameState, node: RegistryNode, reg?: ContentRegistry): boolean {
   if (s.unlockedNodes.includes(node.id)) return false;
-  if (!holdsAll(s.unlockedNodes, node.prerequisites)) return false;
+  if (!ancestrySatisfied(s.unlockedNodes, node, reg)) return false;
   if (reg && nodeUseBlocker(s, node, reg) !== null) return false;
   // A state actor's interconnect denial refuses new holdings on its power sources (#490).
   if (reg && sourceDenial(s, node.signature, reg) !== null) return false;
