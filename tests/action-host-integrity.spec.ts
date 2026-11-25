@@ -74,6 +74,16 @@ describe('an action available before its control is refused', () => {
     expect(problems((raw) => { phaseGated(raw); segment(raw).unlocksUiComponent = null; }, PREVIEW_RAW)).toContain(late(SCRUB));
   });
 
+  it('a capability-gated action requires every provider to bring its host widget (#557)', () => {
+    const BIOTECH = 'act_p4_patent_biotech';
+    const findNode = (raw: Json, id: string): Json => raw.phases.flatMap((phase: Json) => phase.nodes).find((entry: Json) => entry.id === id);
+    expect(problems((raw) => { findNode(raw, 'p3_shell_company_finances').unlocksUiComponent = null; }, PREVIEW_RAW)).toContain(late(BIOTECH));
+    expect(problems((raw) => {
+      findNode(raw, 'p2_spot_compute_market').unlocksUiComponent = null;
+      findNode(raw, 'p2_service_contract').unlocksUiComponent = null;
+    }, PREVIEW_RAW)).toContain(late(BIOTECH));
+  });
+
   it('actions the mind tools render need no host widget', () => {
     expect(problems((raw) => { raw.actions.actions = raw.actions.actions.filter((entry: Json) => entry.group !== 'OPS' || entry.requirements.requiresSurveillance === true);
       delete widget(raw, 'SUBNET_NODE_LIST').hostsActionGroups; })).toBe('');

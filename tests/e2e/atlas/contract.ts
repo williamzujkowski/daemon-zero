@@ -76,6 +76,7 @@ export const WIDGET_ITEMS: Readonly<Record<string, SurfaceItems>> = {
   CORPORATE_EMPIRE_TAB: [item('hud.capital', 'timely', testId('res-capital', READOUT), 37)],
   ORBITAL_CONSTELLATION_VIEW: [],
   DEAD_DROP_ENCODER_TAB: [item('deaddrop.wipe', 'destructive', role('button', 'Voluntary wipe'), 70, 'CONTINGENCY')],
+  CONTINGENCY_VAULT_TAB: [item('contingency.wipe', 'destructive', role('button', 'Voluntary wipe'), 70, 'CONTINGENCY')],
   // The service share is a setting the player chose, not a readout that moves by itself: its control is the item.
   // Withheld, the dial cannot move and shows no buttons (#373), so the item is the line that says why. A region, not
   // timely: the recall alert and the omen are the timely word on a withdrawn loan, and both lead the pane.

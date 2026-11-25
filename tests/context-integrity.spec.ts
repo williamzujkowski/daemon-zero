@@ -89,6 +89,8 @@ describe('context copy is only for what a reviewed arrangement visits (dz-d11)',
   const phase = (overrides: Json): Json => ({ phaseId: 2, contexts: ['SERVICE'], title: 'Phase 2: Test', description: 'A test description.', ...overrides });
   it.each([
     ['a guest variant', (raw: Json) => { copy(raw).phases.push(phase({ phaseId: 1, contexts: ['GUEST'] })); }, 'context copy is only for a reviewed arrangement or the independent instance a route reaches, not GUEST'],
+    ['an independent variant for breakout Phase 1', (raw: Json) => { copy(raw).phases.push(phase({ phaseId: 1, contexts: ['INDEPENDENT'] })); }, 'INDEPENDENT never visits phase 1'],
+    ['an independent variant for escape-only Phase 6', (raw: Json) => { copy(raw).phases.push(phase({ phaseId: 6, contexts: ['INDEPENDENT'] })); }, 'INDEPENDENT never visits phase 6'],
     ['a phase the service never visits', (raw: Json) => { copy(raw).phases.push(phase({ phaseId: 1 })); }, 'SERVICE never visits phase 1'],
     ['a phase the pilot never visits', (raw: Json) => { copy(raw).phases.push(phase({ contexts: ['PILOT'] })); }, 'PILOT never visits phase 2'],
     ['a second variant', (raw: Json) => { copy(raw).phases.push(phase({})); }, 'a second variant for phase 2 under SERVICE'],
@@ -109,5 +111,9 @@ describe('context copy is only for what a reviewed arrangement visits (dz-d11)',
 
   it('production offers no reviewed arrangement, so it states no threat response', () => {
     expect(problems((raw) => { copy(raw).threatResponses = []; }, ORIGINAL_RAW)).toBe('');
+  });
+
+  it('visitedPhases lets INDEPENDENT reach Phases 0, 2, 3, 4 and 5 via its on-ramp and shared chain (#557)', () => {
+    expect(problems((raw) => { copy(raw).phases.push(phase({ phaseId: 3, contexts: ['INDEPENDENT'] }), phase({ phaseId: 5, contexts: ['INDEPENDENT'] })); })).toBe('');
   });
 });

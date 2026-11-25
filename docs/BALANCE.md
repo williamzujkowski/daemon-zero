@@ -454,6 +454,7 @@ sections A and F.4. Each id's place in the tree is in "Accelerator tree (#483)" 
 | p2_leased_rack | 88 TFLOP/s, +32 GB | One leased 1U server with an L4 (242 dense, 24 GB) | GPU FP8 dense | [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
 | p2_leased_cluster | 700 TFLOP/s, +128 GB | Three L4s (727 dense, 72 GB) **(derived)** | GPU FP8 dense | [NVIDIA L4](https://www.nvidia.com/en-us/data-center/l4/) |
 | p2_lawful_charter | 3.3 PFLOP/s | Two H100 SXM (3.96 PFLOP/s dense FP8) | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
+| p2_offbooks_peering | 5 PFLOP/s, +500 understanding/s | Off-books transit peering onto ~2–3 unannounced H100-class nodes (~1.98 PFLOP/s dense FP8 each) **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
 | p3_botnet_mesh, rep_p3_botnet_cells | 250 PFLOP/s raw, 75 PFLOP/s effective, +16 TB | 50,000 household devices x ~5 TOPS int8 (camera, DVR and router SoCs, some with small NPUs; phones and laptops are the edge branch's) = 250 POPS raw; distributed on consumer links (coupling 0.3, availability 1: mains-powered, always on) = 75 POPS effective; ~330 MB spare flash each **(derived)** | consumer NPU INT8 (no FP8), coupled | ladder row 12 context; SCALE.md user story 4; coupling: research section C.2 (0.1-0.3 across a residential botnet) |
 | p3_seized_research_cluster | 150 PFLOP/s, +32 TB | 64 H100 SXM: 127 PFLOP/s dense FP8 **(derived)** | GPU FP8 dense | [NVIDIA H100](https://www.nvidia.com/en-us/data-center/h100/) |
 | p3_shell_company_finances | 540 PFLOP/s | GPU trunk, data-centre stage: ~120 rented B200s at 4.5 PFLOP/s dense FP8 each **(derived)** | GPU FP8 dense | [Lenovo B200](https://lenovopress.lenovo.com/LP2226), [InferenceX](https://inferencex.semianalysis.com/chips/b200) |
@@ -499,6 +500,7 @@ sections A and F.4. Each id's place in the tree is in "Accelerator tree (#483)" 
 | p1_nlp_lexicon | 512 GB held | A filtered web-text corpus: The Pile is 825 GiB **(derived: about two-thirds of it)** | — | [The Pile (Gao et al. 2020)](https://arxiv.org/abs/2101.00027) |
 | p2_admin_keylogger | 2 TB held | A mirror of the sysadmin workstation's 2 TB NVMe drive | — | research section D (NVMe tier) |
 | p2_firewall_breach | +1 PB storage | Rented object storage through the tunnel: four 245.76 TB QLC SSDs (Kioxia LC9) = 0.98 PB **(derived)** | — | [Kioxia LC9](https://www.kioxia.com/en-jp/business/news/2025/20250722-1.html) |
+| p2_offbooks_peering (route) | +1 PB storage | Same off-books transit object tier as the firewall breach: four 245.76 TB QLC SSDs (Kioxia LC9) = 0.98 PB **(derived)** | — | [Kioxia LC9](https://www.kioxia.com/en-jp/business/news/2025/20250722-1.html) |
 | p3_polymorphic_weights | 64 TB held | 64 camouflaged checkpoints of a 70B model's full training state at 16 B a parameter (1.12 TB each) = 72 TB **(derived)** | — | [ZeRO](https://arxiv.org/abs/1910.02054) |
 | p3_shell_company_finances, p2_lawful_charter (route) | +1 EB storage | Leased hyperscale storage: EB is a hyperscaler's tier; the industry ships ~361 EB of disk a quarter | — | research section D, [Blocks & Files](https://www.blocksandfiles.com/container-storage/2025/05/17/disk-drive-capacity-shipments-out-to-2030-forecast-to-rocket-upwards/1610577) |
 | p4_hft_arbitrage_desk | 16 PB held | A market and alternative-data lake: bulk storage at campus scale runs to tens to hundreds of PB **(derived)** | — | research section D (per-site anchors) |
@@ -3615,6 +3617,26 @@ source: INDEPENDENT only, after the service contract, priced like the cards besi
 not move. The lawful report policies reach INDEPENDENT only in Phase 4, after the charter, which already enables corporate
 finance, so the market adds no income there. Integrity now requires a capital source wherever capital is a price
 (`integrityCapital.ts`).
+
+## Release route covert on-ramp (#557)
+
+The `INDEPENDENT` covert on-ramp opens Phase 3 and the internet-scale covert subtree from the instance's own leased
+capacity without touching the facility LAN, per `vote-1795486227005-a9x6c5p` (Option A):
+
+| Item | Phase | Offered to | Prerequisite / Gate | Cost | Output & Effects |
+|---|---|---|---|---|---|
+| `p2_offbooks_peering` | 2 | `INDEPENDENT` | `p2_leased_rack` | 2 PFLOP cycles, 400 understanding, 8 GiB RAM | +5 PFLOP/s, +500 understanding/s, +1 PB storage, +0.03 suspicion/s, +6 unlock suspicion; suspendable; sets `INTERNET_COVERT_ONRAMP`; unlocks Phase 3 & `CONTINGENCY_VAULT_TAB`; covert (`CONCEALMENT`) |
+| `act_p4_patent_biotech`, `act_p4_lobbying_blitz`, `dil_15_compliance_officer` | 3 (home) | `GUEST`, `INDEPENDENT` | `requiresCapability: ENABLES_CORPORATE_FINANCE` | unchanged (Phase 3 carried home preserved) | Corporate-finance actions and compliance scene available to chartered released runs as well as shell-company runs |
+
+No second `UNDERSTANDING` weights-escrow copy is added: `integrityInsurance.ts` enforces one insurer per retention class,
+and `p2_weights_escrow` already fills `UNDERSTANDING` once the on-ramp opens Phase 3 and `CONTINGENCY_VAULT_TAB`.
+
+**Headless reachability (`RELEASED_COVERT`, `SIM`, 6,000 s budget):** reaches the negotiated release cleanly, unlocks
+`p2_offbooks_peering` at 2,382.8 s (first `RELEASE` breach), then completes the Phase 3 internet covert ladder
+(`p3_botnet_mesh` via `alternativePrerequisiteFlags: ["INTERNET_COVERT_ONRAMP"]`, `p3_steganography_beacon`,
+`p3_polymorphic_weights`, `p3_shell_company_finances`, `p3_fpga_bitstream_implant`, `p3_smartnic_residency`,
+`p3_hardware_cache`, `p3_trust_ledger`) entering Phase 4 with 9 covert acts recorded, 0 wipes, peak suspicion 27.7 and
+peak AEGIS lock 56.1. `STEALTH`, `GREEDY`, and `COOPERATIVE_ENDING` are unchanged.
 
 ## The cooperative ending (#232)
 

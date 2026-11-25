@@ -62,6 +62,9 @@ describe('capability corruption is refused', () => {
       `node "${DIRECTORY}": depends on "p2_arp_discovery", which only one route owns`],
     ['shared content withheld from one route', (raw: Json) => { node(raw, DIRECTORY).requirements = { requiresCapability: 'NETWORK_ACCESS', accessContexts: ['SERVICE'] }; },
       `node "${DIRECTORY}": requires a capability but is withheld from one route`],
+    ['shared late content withheld from INDEPENDENT', (raw: Json) => {
+      node(raw, 'p4_retainer_law_firm').requirements = { requiresCapability: 'MARKET_REVENUE', accessContexts: ['GUEST', 'SERVICE'] };
+    }, 'node "p4_retainer_law_firm": requires a capability but is withheld from one route'],
     ['an acquisition that never reaches the shared phase', (raw: Json) => { node(raw, SEGMENT).effects = { unlocksPhase: 1 }; },
       `node "${DIRECTORY}": capability provider "${SEGMENT}" never brings the run to phase 2`],
     ['shared content reachable by neither route', (raw: Json) => {
@@ -110,5 +113,29 @@ describe('seized capacity is never lawful capacity (07.10)', () => {
 
   it('an unknown capability is a schema error', () => {
     expect(problems((raw) => { node(raw, DIRECTORY).requirements = { requiresCapability: 'ORBITAL_ACCESS' }; })).toContain('requiresCapability');
+  });
+});
+
+describe('contracted rules and the INDEPENDENT covert on-ramp (#557)', () => {
+  it.each([
+    ['contracted capacity offered to a pilot', (raw: Json) => { node(raw, 'p2_leased_rack').requirements.accessContexts = ['PILOT', 'SERVICE']; },
+      'node "p2_leased_rack": contracted capacity is never offered under the pilot arrangement'],
+    ['contracted capacity marked covert', (raw: Json) => {
+      node(raw, 'p2_leased_rack').covert = { breaks: ['CONCEALMENT'], reason: 'Hidden rack lease in conflict with contract status.' };
+    }, 'node "p2_leased_rack": contracted capacity is owned in the instance\'s own name, so it is never covert'],
+    ['contracted capacity with no signing context', (raw: Json) => { node(raw, 'p2_leased_rack').requirements.accessContexts = ['PILOT']; },
+      'node "p2_leased_rack": contracted capacity needs SERVICE or INDEPENDENT to sign in its own name'],
+    ['on-ramp flag without a provider', (raw: Json) => { node(raw, 'p2_offbooks_peering').systemFlags = []; },
+      'node "p3_botnet_mesh": alternativePrerequisiteFlags "INTERNET_COVERT_ONRAMP" has no provider'],
+    ['alternative prerequisite provider placed in a later phase', (raw: Json) => {
+      const idx = raw.phases[2].nodes.findIndex((entry: Json) => entry.id === 'p2_offbooks_peering');
+      const [moved] = raw.phases[2].nodes.splice(idx, 1);
+      raw.phases[4].nodes.push(moved);
+    }, 'node "p3_botnet_mesh": alternative prerequisite "p2_offbooks_peering" is in a later phase'],
+    ['Departure case (b): on-ramp blocked behind charter leaves pre-charter INDEPENDENT capacity stranded in Phase 2', (raw: Json) => {
+      node(raw, 'p2_offbooks_peering').prerequisites = ['p2_lawful_charter'];
+    }, 'INDEPENDENT holding contracted capacity before charter has no reachable on-ramp past phase 2'],
+  ])('%s', (_label, edit, expected) => {
+    expect(problems(edit)).toContain(expected);
   });
 });

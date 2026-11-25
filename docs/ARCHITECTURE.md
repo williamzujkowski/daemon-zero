@@ -410,6 +410,14 @@ draw hunts. Built as declarations in content, one record and reads of it; the en
 - **Sim.** No bot is released or departs and then acts covertly, so every sim run is unchanged: `make sim` and
   `make sim-report` print the same lines as main, and `tests/sim.spec.ts`'s full hashes moved only by the version and
   the empty record (`asV29` takes both back to the earlier hash).
+- **On-ramp (#557).** `SystemFlagSchema` adds `INTERNET_COVERT_ONRAMP`, `TechNodeSchema` adds
+  `alternativePrerequisiteFlags` (`src/content/ancestry.ts`), and `withAncestors` (`save.ts`) checks alternative providers
+  before reconciling primary prerequisites with no `SCHEMA_VERSION` bump. `p2_offbooks_peering` (`INDEPENDENT`, covert
+  `CONCEALMENT`) unlocks Phase 3, `CONTINGENCY_VAULT_TAB`, and `p3_botnet_mesh` via that flag; `isCovertOrTainted` in
+  `lawfullyReached` (`threatQuery.ts`) rejects covert or covert-ancestry nodes so leased capacity never exempts an on-ramp
+  node from scale hunts. `act_p4_patent_biotech`, `act_p4_lobbying_blitz`, and `dil_15_compliance_officer` re-gate onto
+  `ENABLES_CORPORATE_FINANCE` (`["GUEST", "INDEPENDENT"]`). `RELEASED_COVERT` proves released on-ramp reachability while
+  `STEALTH`, `GREEDY`, and `COOPERATIVE_ENDING` remain unchanged.
 
 ## The relevance threshold and the standing stance (#536)
 

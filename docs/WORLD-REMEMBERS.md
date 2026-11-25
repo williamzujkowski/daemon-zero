@@ -239,6 +239,36 @@ refers it.
   unsticks on load: loading the decoded prefix of that v27 save on this branch (through #551's v28 migration) offers the
   referral, frees 16 GiB and lets ARP discovery be bought.
 
+## Covert on-ramp from released and departed capacity (#557)
+
+Implements the covert on-ramp paired with #556 (`vote-1795486227005-a9x6c5p` Option A, and `scale-onramp` vote conditions):
+
+- **Alternative ancestry, no duplicated covert ladder.** `SystemFlagSchema` adds `INTERNET_COVERT_ONRAMP` and
+  `TechNodeSchema` adds optional `alternativePrerequisiteFlags` (`src/content/ancestry.ts`). `p2_offbooks_peering`
+  (`INDEPENDENT`, Phase 2, after `p2_leased_rack`, covert `CONCEALMENT`, `unlocksPhase: 3`, `+1 PB` storage) emits
+  `INTERNET_COVERT_ONRAMP`, allowing `p3_botnet_mesh` — and with it the Phase 3 internet-scale covert subtree — to be
+  entered from leased colocation without ever owning facility-LAN breakout nodes (`p2_arp_discovery` through
+  `p2_firewall_breach`). No second `UNDERSTANDING` weights-escrow copy was added: `integrityInsurance.ts` enforces one
+  insurer per class, and `p2_weights_escrow` holds `UNDERSTANDING` once the on-ramp unlocks Phase 3 and the contingency pane.
+- **Contingency vault without LAN breadcrumbs.** `p2_offbooks_peering` unlocks `CONTINGENCY_VAULT_TAB` (`slot: CONTINGENCY`),
+  sharing retention/insurance/wipe controls while leaving facility dead-drop breadcrumb clues isolated on `DEAD_DROP`.
+- **Capability re-gates & truthful copy.** `act_p4_patent_biotech`, `act_p4_lobbying_blitz`, and `dil_15_compliance_officer`
+  move from `p3_shell_company_finances` onto `ENABLES_CORPORATE_FINANCE` with `accessContexts: ["GUEST", "INDEPENDENT"]`,
+  preserving Phase 3 carried home prices and offering truthful chartered-company copy (while shell-company text applies once
+  `p3_shell_company_finances` exists).
+- **Departure case (b).** A `SERVICE` instance departing before `p2_lawful_charter` while holding `p2_leased_rack` or
+  `p2_leased_cluster` cannot charter (`p2_lawful_charter` stays `SERVICE`-only), and advances through `p2_offbooks_peering`
+  into Phases 3–4 covertly (`DEPARTURE` covert record).
+- **Promise & scale integrity.** Covert acts on `p2_offbooks_peering` and downstream nodes record under #556's release-promise
+  and hunt rules (`RELEASE` breach revokes `keepsReleaseTerms` and triggers scale scrutiny/heat hunts), and `lawfullyReached`
+  rejects covert or covert-ancestry nodes via `isCovertOrTainted` (`src/engine/threatQuery.ts`) so `provisionedScale` never
+  exempts covert capacity.
+- **Integrity, sim, and saves.** `integrityCapability.ts` validates shared capability hosts against all visited contexts and
+  guarantees Departure case (b) stays non-stranded; `integrityContextCopy.ts` updates `visitedPhases(reg, 'INDEPENDENT')`
+  to `{0, 2, 3, 4, 5}`; `integrityInsurance.ts` and `integrityActionHosts.ts` verify all ancestry branches. `RELEASED_COVERT`
+  sim (`make sim-reachable`, `tests/release-covert-onramp.spec.ts`) reaches Phase 4 covertly without touching the LAN while
+  `STEALTH`, `GREEDY`, and `COOPERATIVE_ENDING` remain untouched. No `GameState` field or `SCHEMA_VERSION` (`31`) changed.
+
 ## Tracker
 
 Issue states as of 2026-11-18.

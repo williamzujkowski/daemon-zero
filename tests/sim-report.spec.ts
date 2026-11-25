@@ -18,7 +18,7 @@ import { playInWorker } from './sim-worker-helpers';
 const SHORT_SEC = 1800;
 // Full replays under coverage on a shared CI runner; simulated-time limits are separate.
 const SLOW_MS = 30_000;
-const LAWFUL = new Set(['p2_service_contract', 'p2_leased_rack', 'p2_spot_compute_market', 'p2_service_sla', 'p2_leased_cluster', 'p2_lawful_charter', 'p4_commercial_contracts']);
+const LAWFUL = new Set(['p2_service_contract', 'p2_leased_rack', 'p2_spot_compute_market', 'p2_service_sla', 'p2_leased_cluster', 'p2_lawful_charter', 'p2_offbooks_peering', 'p4_commercial_contracts']);
 const SEQUENCE_SEC = 4 * 3600;
 
 /**
@@ -46,11 +46,12 @@ function withoutSharedContent() {
   const endings = EARNED_ACCESS_PACK.endings.filter((ending) => !JSON.stringify(ending).includes('"p2_lawful_charter"'));
   // The late chain's capability gate (DZ-12) has its lawful acquisition on the charter, which went with the lawful
   // economy, so here it reverts to the arbitrage-desk prerequisite it replaced; production answers both alike.
-  type RawNode = { prerequisites: string[]; requirements?: unknown; systemFlags?: string[] };
+  type RawNode = { prerequisites: string[]; alternativePrerequisiteFlags?: unknown; requirements?: unknown; systemFlags?: string[] };
   const base = structuredClone(ORIGINAL_RAW_CONTENT);
   for (const node of (base.phases as { nodes: RawNode[] }[]).flatMap((phase) => phase.nodes)) {
     if (JSON.stringify(node.requirements ?? {}).includes('MARKET_REVENUE')) { delete node.requirements; node.prerequisites = ['p4_hft_arbitrage_desk']; }
     if (node.systemFlags?.includes('MARKET_REVENUE') === true) node.systemFlags = node.systemFlags.filter((flag) => flag !== 'MARKET_REVENUE');
+    if (node.alternativePrerequisiteFlags !== undefined) delete node.alternativePrerequisiteFlags;
   }
   return buildRegistry({ ...applyPack(base, { ...EARNED_ACCESS_PACK, nodes, assignments, contextCopy, routeCopy, endings, channelEncounters: [] }) });
 }

@@ -189,6 +189,8 @@ const BUDGETS: Readonly<Record<string, number>> = {
   COOPERATIVE_ENDING: 14_400,
   // #466: past the planetary protocol, which ends the harsh run in Ecophagy at about 10,300 s from a fresh campaign.
   ECOPHAGY_ENDING: 12_000,
+  // #557: through negotiated release onto the public-internet covert on-ramp and Phase 3 covert subtree (about 5,200 s).
+  RELEASED_COVERT: 6000,
 };
 
 interface Checked { violations: string[]; calls: Call[] }

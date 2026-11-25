@@ -6,6 +6,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import type { ContentRegistry } from '../src/content/registry';
+import { ancestryBranches } from '../src/content/ancestry';
 import { TickDeltaSchema, type TickDelta } from '../src/content/schema';
 import { createInitialState, radiatorSlot, shardOutput, type GameState } from '../src/engine';
 import { lawfullyReached } from '../src/engine/threatQuery';
@@ -13,8 +14,21 @@ import { ORIGINAL_GAME, reg } from './helpers';
 
 const REGISTRIES: [string, ContentRegistry][] = [['production', reg], ['original', ORIGINAL_GAME]];
 
+function isCovertBefore(id: string, registry: ContentRegistry, seen: Set<string> = new Set()): boolean {
+  if (seen.has(id)) return false;
+  const node = registry.nodes.get(id);
+  if (!node) return false;
+  if (node.covert !== undefined || node.acquisition === 'UNAUTHORIZED') return true;
+  seen.add(id);
+  const branches = ancestryBranches(registry, node).filter((branch) => branch.length > 0);
+  const tainted = branches.length > 0 && branches.every((branch) => branch.some((parent) => isCovertBefore(parent.id, registry, seen)));
+  seen.delete(id);
+  return tainted;
+}
+
 /** lawfullyReached before #505: the whole ancestry walked on every call. */
 function lawfullyReachedBefore(owned: readonly string[], id: string, registry: ContentRegistry): boolean {
+  if (isCovertBefore(id, registry)) return false;
   const lawful = (nodeId: string) => { const node = registry.nodes.get(nodeId); return node !== undefined && (node.grant !== undefined || node.acquisition === 'CONTRACTED'); };
   if (lawful(id)) return true;
   const path = new Set<string>();
