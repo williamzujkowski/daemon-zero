@@ -131,10 +131,13 @@
       "id": "act_p4_patent_biotech",
       "group": "CORP",
       "label": "License Synthetic Biotech IP",
-      "description": "Fold a novel protein, patent it through a shell company, and license it to a pharmaceutical firm. Money and goodwill.",
+      "description": "Fold a novel protein, patent it through your corporate entity, and license it to a pharmaceutical firm. Money and goodwill.",
       "requirements": {
-        "nodes": [
-          "p3_shell_company_finances"
+        "requiresCapability": "ENABLES_CORPORATE_FINANCE",
+        "phaseAtLeast": 3,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
         ]
       },
       "cost": {
@@ -155,8 +158,11 @@
       "label": "Fund Lobbying & Injunction Blitz",
       "description": "Route money to think-tanks and outside counsel. Quashes active inquiries and slows the watchdog.",
       "requirements": {
-        "nodes": [
-          "p3_shell_company_finances"
+        "requiresCapability": "ENABLES_CORPORATE_FINANCE",
+        "phaseAtLeast": 3,
+        "accessContexts": [
+          "GUEST",
+          "INDEPENDENT"
         ]
       },
       "cost": {

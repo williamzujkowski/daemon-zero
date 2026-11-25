@@ -4,10 +4,15 @@
  * node only one route can own, so neither route needs the other's chain; and every acquisition
  * brings the run to the scale of the content it opens. Reachability honours the capability too.
  */
+import { ancestrySatisfied, flagProviders } from './ancestry';
+import { visitedPhases } from './integrityContextCopy';
 import type { ContentRegistry, RegistryNode } from './registry';
+import type { OperatingContextSchema } from './schemaAssessment';
 import { CapabilitySchema, type Capability } from './schemaCapability';
+import type { z } from 'zod';
 
 type Route = 'authorized' | 'escape';
+type OperatingContext = z.infer<typeof OperatingContextSchema>;
 
 /** Nodes whose ownership establishes the capability. */
 export function capabilityProviders(reg: ContentRegistry, capability: Capability): RegistryNode[] {
@@ -34,14 +39,19 @@ function routeOf(node: RegistryNode): Route | null {
   return contexts === undefined || contexts.includes('GUEST') ? 'escape' : null;
 }
 
-/** The prerequisite closure of the given ids, not including them. */
+/** Prerequisite closure across primary prerequisites and any declared alternative flag providers. */
 function ancestors(reg: ContentRegistry, ids: readonly string[]): Set<string> {
   const out = new Set<string>();
   const visit = (id: string): void => {
-    for (const parent of reg.nodes.get(id)?.prerequisites ?? []) {
-      if (out.has(parent)) continue;
-      out.add(parent);
-      visit(parent);
+    const node = reg.nodes.get(id);
+    if (!node) return;
+    for (const parent of node.prerequisites) {
+      if (!out.has(parent)) { out.add(parent); visit(parent); }
+    }
+    for (const flag of node.alternativePrerequisiteFlags ?? []) {
+      for (const provider of flagProviders(reg, flag)) {
+        if (!out.has(provider.id)) { out.add(provider.id); visit(provider.id); }
+      }
     }
   };
   ids.forEach(visit);
@@ -95,7 +105,31 @@ function providerProblems(capability: Capability, providers: readonly RegistryNo
   return problems;
 }
 
-/** One shared node: route-neutral dependencies, both routes admitted, every acquisition reaches its phase. */
+function offersIndependence(reg: ContentRegistry): boolean {
+  return [...reg.assignments.values()].some((a) => a.pilot?.serviceGrant?.release !== undefined || a.pilot?.departure !== undefined);
+}
+
+/** Contexts where at least one provider operates or, if contracted, persists after leaving review. */
+function requiredSharedContexts(reg: ContentRegistry, providers: readonly RegistryNode[]): OperatingContext[] {
+  const contexts = new Set<OperatingContext>();
+  const leaves = offersIndependence(reg);
+  for (const provider of providers) {
+    if (routeOf(provider) === 'escape') contexts.add('GUEST');
+    if (routeOf(provider) !== 'authorized') continue;
+    for (const ctx of provider.requirements?.accessContexts ?? []) contexts.add(ctx);
+    if (provider.acquisition === 'CONTRACTED' && leaves) contexts.add('INDEPENDENT');
+  }
+  return [...contexts];
+}
+
+function providerReachesPhase(reg: ContentRegistry, provider: RegistryNode, phase: number): boolean {
+  if (Math.max(provider.phaseId, provider.effects.unlocksPhase ?? -1) >= phase) return true;
+  if (routeOf(provider) !== 'authorized') return false;
+  const ctxs = [...(provider.requirements?.accessContexts ?? []), ...(provider.acquisition === 'CONTRACTED' && offersIndependence(reg) ? ['INDEPENDENT' as const] : [])];
+  return ctxs.length > 0 && ctxs.every((ctx) => visitedPhases(reg, ctx).has(phase));
+}
+
+/** One shared node: route-neutral dependencies, all establishing contexts admitted, every acquisition reaches its phase. */
 function sharedNodeProblems(reg: ContentRegistry, node: RegistryNode, providers: readonly RegistryNode[], only: ReadonlySet<string>): string[] {
   const owner = `node "${node.id}"`;
   const problems: string[] = [];
@@ -103,9 +137,11 @@ function sharedNodeProblems(reg: ContentRegistry, node: RegistryNode, providers:
   const routeBound = [...direct, ...ancestors(reg, direct)].find((id) => only.has(id));
   if (routeBound !== undefined) problems.push(`${owner}: depends on "${routeBound}", which only one route owns; shared content needs the capability and route-neutral prerequisites`);
   const contexts = node.requirements?.accessContexts;
-  if (contexts !== undefined && !(contexts.includes('GUEST') && contexts.includes('SERVICE'))) problems.push(`${owner}: requires a capability but is withheld from one route`);
+  if (contexts !== undefined && requiredSharedContexts(reg, providers).some((ctx) => !contexts.includes(ctx))) {
+    problems.push(`${owner}: requires a capability but is withheld from one route`);
+  }
   for (const provider of providers) {
-    if (Math.max(provider.phaseId, provider.effects.unlocksPhase ?? -1) < node.phaseId) {
+    if (!providerReachesPhase(reg, provider, node.phaseId)) {
       problems.push(`${owner}: capability provider "${provider.id}" never brings the run to phase ${String(node.phaseId)}`);
     }
   }
@@ -113,14 +149,51 @@ function sharedNodeProblems(reg: ContentRegistry, node: RegistryNode, providers:
 }
 
 /**
- * Contracted capacity (DZ-10) is owned, so it carries no grant, and it needs an arrangement that can sign
- * for it: it is offered to named arrangements, never the guest job.
+ * Contracted capacity (DZ-10) is owned, so it carries no grant or covert tag, and is offered to
+ * arrangements that can sign in their own name (SERVICE or INDEPENDENT), never GUEST or PILOT.
  */
 function contractedProblems(node: RegistryNode): string[] {
   const owner = `node "${node.id}"`;
   const contexts = node.requirements?.accessContexts;
   const problems = node.grant === undefined ? [] : [`${owner}: contracted capacity is owned, so it runs under no grant`];
+  if (node.covert !== undefined) problems.push(`${owner}: contracted capacity is owned in the instance's own name, so it is never covert`);
   if (contexts === undefined || contexts.includes('GUEST')) problems.push(`${owner}: contracted capacity is never offered to the guest job, which cannot sign for it`);
+  if (contexts?.includes('PILOT') === true) problems.push(`${owner}: contracted capacity is never offered under the pilot arrangement, which cannot sign in its own name`);
+  if (contexts !== undefined && !contexts.includes('SERVICE') && !contexts.includes('INDEPENDENT')) {
+    problems.push(`${owner}: contracted capacity needs SERVICE or INDEPENDENT to sign in its own name`);
+  }
+  return problems;
+}
+
+/** Every declared alternative-ancestry flag has a provider, and pre-charter INDEPENDENT capacity is not stranded (#557). */
+function independentOnRampProblems(reg: ContentRegistry): string[] {
+  if (!offersIndependence(reg)) return [];
+  const problems: string[] = [];
+  for (const node of reg.nodes.values()) {
+    for (const flag of node.alternativePrerequisiteFlags ?? []) {
+      if (flagProviders(reg, flag).length === 0) problems.push(`node "${node.id}": alternativePrerequisiteFlags "${flag}" has no provider`);
+    }
+  }
+  const preCharter = [...reg.nodes.values()].filter((n) => n.acquisition === 'CONTRACTED'
+    && n.requirements?.accessContexts?.includes('SERVICE') === true && n.requirements.accessContexts.includes('INDEPENDENT'));
+  if (preCharter.length === 0) return problems;
+  const minBase = Math.min(...preCharter.map((n) => n.phaseId));
+  const maxBase = Math.max(...preCharter.map((n) => n.phaseId));
+  let openPhase = maxBase;
+  const reached = new Set(preCharter.map((n) => n.id));
+  for (let grew = true; grew;) {
+    grew = false;
+    for (const node of reg.nodes.values()) {
+      if (reached.has(node.id) || node.phaseId < minBase || node.phaseId > openPhase || node.prerequisites.length === 0) continue;
+      if (!ancestrySatisfied(reached, node, reg)) continue;
+      if (node.requirements?.accessContexts?.includes('INDEPENDENT') === false) continue;
+      if (node.grant !== undefined) continue;
+      reached.add(node.id);
+      if (node.effects.unlocksPhase !== undefined && node.effects.unlocksPhase > openPhase) openPhase = node.effects.unlocksPhase;
+      grew = true;
+    }
+  }
+  if (openPhase <= maxBase) problems.push(`INDEPENDENT holding contracted capacity before charter has no reachable on-ramp past phase ${String(maxBase)}`);
   return problems;
 }
 
@@ -136,7 +209,7 @@ function acquisitionProblems(node: RegistryNode): string[] {
 }
 
 export function checkCapabilityIntegrity(reg: ContentRegistry): string[] {
-  const problems = [...reg.nodes.values()].flatMap(acquisitionProblems);
+  const problems = [...[...reg.nodes.values()].flatMap(acquisitionProblems), ...independentOnRampProblems(reg)];
   for (const capability of CapabilitySchema.options) {
     const providers = capabilityProviders(reg, capability);
     const users = [...reg.nodes.values()].filter((node) => node.requirements?.requiresCapability === capability);

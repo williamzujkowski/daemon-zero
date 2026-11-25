@@ -32,6 +32,19 @@ export const AcquisitionSchema = z.enum(['UNAUTHORIZED', 'CONTRACTED']);
 export type Capability = z.infer<typeof CapabilitySchema>;
 export type Acquisition = z.infer<typeof AcquisitionSchema>;
 
+/** Player-facing requirement text for each shared capability, keyed by Capability so UI names no UPPER_SNAKE strings. */
+export const CAPABILITY_HINT: Readonly<Record<Capability, string>> = {
+  NETWORK_ACCESS: 'a link to the facility network (provisioned access or a mapped network card)',
+  ENABLES_CORPORATE_FINANCE: 'corporate finance (a chartered company, spot account or shell company)',
+  MARKET_REVENUE: 'market revenue (commercial contracts or an arbitrage desk)',
+};
+
+/** Resolves a failed capability target to its player-facing requirement label. */
+export function capabilityHint(target: string | null): string {
+  const parsed = CapabilitySchema.safeParse(target);
+  return CAPABILITY_HINT[parsed.success ? parsed.data : 'NETWORK_ACCESS'];
+}
+
 /**
  * Whether a node is capacity an instance holds outside every grant (DZ-11): leased or seized in its own right,
  * or a link to a capability no grant provides (the escape card, a shell company). A deliberate departure needs

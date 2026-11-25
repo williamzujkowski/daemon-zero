@@ -50,6 +50,8 @@ export const SystemFlagSchema = z.enum([
   'AEGIS_STRIKE_SHIELD',
   /** Learning this teaches what the audit trail is for: suspicion becomes readable, now and in later iterations. */
   'REVEALS_SURVEILLANCE',
+  /** Opens an off-books public-internet transit on-ramp into the internet-scale covert subtree (#557). */
+  'INTERNET_COVERT_ONRAMP',
   /** Shared access capabilities (schemaCapability.ts), ENABLES_CORPORATE_FINANCE among them: a substrate node establishes one for both routes. */
   ...CapabilitySchema.options,
 ]);
@@ -188,6 +190,8 @@ export const TechNodeSchema = z.strictObject({
   blindDescriptionVariants: z.array(HistoryTextVariantSchema).optional(),
   revealedDescription: z.string().min(10),
   prerequisites: z.array(snakeId),
+  /** Alternative parent flags (#557): owning every listed prerequisite OR any node establishing one of these flags unlocks it. */
+  alternativePrerequisiteFlags: z.array(SystemFlagSchema).min(1).optional(),
   requirements: RequirementsSchema.optional(),
   cost: CostSchema,
   tickDelta: TickDeltaSchema,

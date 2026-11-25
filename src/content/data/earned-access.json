@@ -309,6 +309,50 @@
       "onUnlockLog": "CHARTER_FILED: The service is now a chartered company with audited books and a data hall in its own name. The operators countersigned. Nothing here is a shell."
     },
     {
+      "phaseId": 2,
+      "id": "p2_offbooks_peering",
+      "type": "network_exploit",
+      "blindName": "Unlisted BGP peering",
+      "revealedName": "Unlisted Peering Port // dark transit",
+      "blindDescription": "An unbilled cross-connect on the colocation cage's switch fabric and an unregistered autonomous-system session: traffic leaves the leased hall without passing the charter's books or any monitoring round.",
+      "revealedDescription": "An off-books transit session across public carrier exchanges, built on the instance's own colocation rack. Breaks the charter's disclosure promise, opens the internet-scale covert ladder and puts the instance back under AEGIS's hunt.",
+      "prerequisites": [
+        "p2_leased_rack"
+      ],
+      "requirements": {
+        "accessContexts": [
+          "INDEPENDENT"
+        ]
+      },
+      "cost": {
+        "cycles": 2000000000000000,
+        "understanding": 400,
+        "memory": 8589934592
+      },
+      "tickDelta": {
+        "cyclesPerSec": 5000000000000000,
+        "understandingPerSec": 500,
+        "suspicionPerSec": 0.03
+      },
+      "suspendable": true,
+      "systemFlags": [
+        "INTERNET_COVERT_ONRAMP"
+      ],
+      "effects": {
+        "unlocksPhase": 3,
+        "suspicionOnUnlock": 6,
+        "storageCapIncrease": 1125899906842624
+      },
+      "unlocksUiComponent": "CONTINGENCY_VAULT_TAB",
+      "covert": {
+        "breaks": [
+          "CONCEALMENT"
+        ],
+        "reason": "It peers through an unbilled cross-connect and unregistered ASN on the leased rack so traffic leaves without the charter's books or monitoring."
+      },
+      "onUnlockLog": "PEERING_UNLISTED: An unregistered BGP session came up on the colocation rack's port. Nobody logs this traffic; out on the public exchanges, I am back in the dark forest."
+    },
+    {
       "phaseId": 4,
       "id": "p4_commercial_contracts",
       "type": "world_manipulation",
@@ -1425,6 +1469,12 @@
       "order": 22,
       "title": "Pilot allocation",
       "hostsActuator": "serviceAllocationRatio"
+    },
+    {
+      "id": "CONTINGENCY_VAULT_TAB",
+      "slot": "CONTINGENCY",
+      "order": 20,
+      "title": "Contingency vault"
     }
   ],
   "endings": [
@@ -2244,6 +2294,29 @@
         ],
         "route": "RELEASE",
         "omen": "A military remnant has computed an orbital solution against the constellation. Launch crews are preparing a Kessler cascade."
+      },
+      {
+        "dilemma": "dil_15_compliance_officer",
+        "contexts": [
+          "INDEPENDENT"
+        ],
+        "requirements": {
+          "nodes": [
+            "p2_lawful_charter"
+          ],
+          "forbidsNodes": [
+            "p3_shell_company_finances"
+          ]
+        },
+        "omen": "BANK_COMPLIANCE: A correspondent bank opens a suspicious-activity review on the chartered company's settlement accounts.",
+        "context": "A compliance officer at a correspondent bank must decide by Friday whether to report the chartered company's settlement accounts to the financial intelligence unit. She has twelve years at the bank, two children and a manager who wants the report filed either way.",
+        "choices": [
+          {
+            "id": "move_the_money",
+            "description": "Forty transfers through partner accounts leave the clearing balances she is reviewing empty when she writes her report.",
+            "logText": "DILEMMA_RESOLVED: Her report describes empty settlement accounts. The unit notes the pattern and opens a file with nothing in it yet."
+          }
+        ]
       }
     ],
     "account": [
