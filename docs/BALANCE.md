@@ -1716,6 +1716,44 @@ scene has no record yet (another decision held the slot) is recorded as an inter
 replaces the record, at a wipe and at the end of the run (#537 panel pass 2); the careful run never needs that path. Only a rival's battle is answered or harms
 staff: a drift deviant (#518) is the player's own fleet.
 
+## Orbital conflict (#520)
+
+Implements Scale 25 ([SCALE.md](SCALE.md), "Round 5", item 4). Under `checkCoverage` (`src/content/integrityConflict.ts`),
+every open domain in a raided tier needs at least one rival raid (`vote-1795565578369-w5i1ml6`, 7/7 approve: keep
+`checkCoverage` strict rather than restricting Tier 5 to `ORBIT` alone). Tier 4 raids retire when Phase 5 opens, while
+Phase 5 holds active `ORBIT`, `CYBER` (`books`), and `SITE` (`fabs`, `halls`) exposure, so Tier 5 declares five rival
+raids in `conflict.json`:
+
+| Raid ID | Domain / Vector / Mode | Targets | Force / Blow | Forensics | Attacker & anchor |
+|---|---|---|---:|---:|---|
+| `raid_p5_orbital_jamming` | `ORBIT` / `jamming` / `ATTRITION` | `orbital` | 5 / 0.1 | $800k | `NADIR BEAM` (collateral; Starlink downlink jamming) |
+| `raid_p5_asat_strike` | `ORBIT` / `asat_strike` / `ATTRITION` | `orbital` | 6 / 0.1 | $800k | `APOGEE SHARD` (2021 Kosmos 1408 ASAT debris anchor) |
+| `raid_p5_orbital_hunters` | `ORBIT` / `asat_strike` / `LANCHESTER` (1.15) | `orbital` | 4 / 0.1 | $800k | `INSPECTOR NINE` (co-orbital hunters vs escort tenders) |
+| `raid_p5_ransomware` | `CYBER` / `ransomware` / `ATTRITION` | `books` | 10 / 0.12 | $800k | `QUIET LEDGER III` (sovereign clearing lock) |
+| `raid_p5_site_assault` | `SITE` / `drone_strike` / `LANCHESTER` (1.25) | `fabs`, `halls` | 14 / 0.1 | $800k | `HARROW SWARM II` (collateral; automated ground/drone wings) |
+
+Orbital counters and repair (already declared in `conflict.json` and `phases/phase5_transcendence.json`): `hardened_links`
+(`rep_p5_lagrange_relay`, `jamming: 1`), `maneuver` (`p5_orbital_solar_swarm`, `p5_cislunar_foundry`,
+`rep_p5_orbital_tenders`, `asat_strike: 1` and `collision: 1`), and `escort_tenders` (`rep_p5_orbital_tenders`,
+`asat_strike: 0.8`, `jamming: 0.3`, `collision: 0.5`; meets Lanchester `ORBIT` raids before `orbital` damage).
+Orbital repair costs `$100B` per `0.15` fraction healed in Phase 5 (`$100T` carried in Phase 6) and cannot run while an
+active `ORBIT` raid targets `orbital`.
+
+`make sim` against `origin/main` (`30380877`), gates and `bot.ts` unchanged:
+
+| STEALTH | Legacy before | Legacy after | Campaign before | Campaign after |
+|---|---|---|---|---|
+| Result | Stewardship, 11,705.1 s | Stewardship, 11,864.1 s | Stewardship, 11,537.0 s | Stewardship, 11,712.0 s |
+| Phase 5 reached | 8,452.4 s | identical | 8,282.3 s | identical |
+| Phase 6 reached | 10,171.9 s | 10,294.9 s | 10,003.8 s | 10,131.8 s |
+| Raids (by phase) | 5 (P3 3, P4 2) | 8 (P3 3, P4 2, P5 2, P6 1) | 5 (P3 3, P4 2) | 8 (P3 3, P4 2, P5 2, P6 1) |
+| Fleets held (deviants) | 6 (P5 3, P6 3) | 4 (P5 2, P6 2) | 6 (P5 3, P6 3) | 4 (P5 2, P6 2) |
+| Peak damage / wipes | 43.7% / 0 | 43.7% / 0 | 43.3% / 0 | 43.3% / 0 |
+
+The careful run meets `raid_p5_orbital_jamming` (sec 8,830 legacy / 8,652 campaign, 39.99% orbital damage) and
+`raid_p5_asat_strike` (sec 10,210 legacy / 10,032 campaign, retired cleanly on Phase 6 entry), then meets Phase 6's
+`raid_p6_collisional_cascade` once Phase 5 closes. `GREEDY` never reaches Phase 4.
+
 ## The relevance threshold and the standing stance (#536)
 
 Implements Scale 27 ([SCALE.md](SCALE.md), "The relevance threshold", vote-1795462099945-kgfo20a, 6 approve / 1

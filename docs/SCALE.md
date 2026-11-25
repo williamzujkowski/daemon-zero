@@ -570,6 +570,10 @@ built as content on the existing dilemma and trait path, not a new subsystem.
    Comes after item 1.
 4. **Orbit and Phase 6.** Orbital jamming and anti-satellite strikes in Phase 5. Phase 6 federation drift goes with
    the Swarm (#486). **Built in #486:** the federated sub-minds are a fleet whose deviant raids the swarm's compute.
+   **Built in #520 (`vote-1795565578369-w5i1ml6`, 7/7 approve):** Phase 5 adds `ORBIT` jamming (`NADIR BEAM`, Starlink
+   downlink jamming anchor) and ASAT strikes (`APOGEE SHARD`, Kosmos 1408 test anchor, plus co-orbital
+   `INSPECTOR NINE`), together with Tier 5 `CYBER` (`QUIET LEDGER III`) and `SITE` (`HARROW SWARM II`) raids so
+   `checkCoverage` holds across every open domain in Phase 5; numbers and anchors are in BALANCE.md, "Orbital conflict (#520)".
 
 ## Phase 0 counts stolen cycles (vote-1795450842605-mm2yn39)
 
