@@ -44,6 +44,8 @@ describe('an insuring node that breaks a rule is refused', () => {
     ['outside the CONTINGENCY group', (raw: Json) => { node(raw, CACHE).uiGroup = 'TREE'; }, `insuring node "${CACHE}": must be in the CONTINGENCY group`],
     ['bought before the pane opens', (raw: Json) => { node(raw, ESCROW).prerequisites = ['p2_log_spoofer']; },
       `insuring node "${ESCROW}": must be built on the node that opens the CONTINGENCY pane`],
+    ['opened by the INDEPENDENT on-ramp without opening CONTINGENCY first', (raw: Json) => { node(raw, 'p2_offbooks_peering').unlocksUiComponent = null; },
+      `insuring node "${CACHE}": must be built on the node that opens the CONTINGENCY pane`],
     ['a second investment in one class', (raw: Json) => { node(raw, LEDGER).insures = { class: 'UNDERSTANDING', retention: 0.8 }; },
       `insuring node "${LEDGER}": class UNDERSTANDING is already insured by "${ESCROW}"`],
     ['an escrow no better than hardware', (raw: Json) => { node(raw, ESCROW).insures.retention = 0.6; },

@@ -3,6 +3,7 @@
  * id references between manifests, and design rules that prevent soft-locks.
  * Every check returns human-readable problems; an empty list means valid.
  */
+import { ancestrySatisfied, flagProviders } from './ancestry';
 import { checkEndingVariants } from './integrityEndings';
 import { checkSwarmIntegrity } from './integritySwarm';
 import { checkChannelIntegrity } from './integrityChannel';
@@ -72,6 +73,13 @@ function checkPrerequisites(reg: ContentRegistry): string[] {
         problems.push(`node "${node.id}": prerequisite "${reqId}" is in a later phase`);
       }
     }
+    for (const flag of node.alternativePrerequisiteFlags ?? []) {
+      for (const provider of flagProviders(reg, flag)) {
+        if (provider.phaseId > node.phaseId) {
+          problems.push(`node "${node.id}": alternative prerequisite "${provider.id}" is in a later phase`);
+        }
+      }
+    }
   }
   return problems;
 }
@@ -88,7 +96,7 @@ function checkReachability(reg: ContentRegistry): string[] {
     progressed = false;
     for (const node of reg.nodes.values()) {
       if (reached.has(node.id)) continue;
-      if (node.prerequisites.every((id) => reached.has(id)) && capabilityReached(reg, node, reached)) {
+      if (ancestrySatisfied(reached, node, reg) && capabilityReached(reg, node, reached)) {
         reached.add(node.id);
         progressed = true;
       }

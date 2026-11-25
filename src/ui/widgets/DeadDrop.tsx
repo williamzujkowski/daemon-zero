@@ -18,6 +18,12 @@ import { palette, theme } from '../theme';
 
 const BONUS = CONTENT.balance.voluntaryWipeBonus;
 
+function RetentionReadout() {
+  const forced = useGame((game) => sharePercent(understandingShare(game, CONTENT, 'SUSPICION')));
+  const planned = useGame((game) => sharePercent(understandingShare(game, CONTENT, 'VOLUNTARY')));
+  return <Text testID="deaddrop-retention" style={theme.text}>Understanding a wipe keeps: {forced} if forced, {planned} if planned</Text>;
+}
+
 function WipeButton() {
   const [confirming, confirm] = useState(false);
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
@@ -33,17 +39,24 @@ function WipeButton() {
   </>;
 }
 
+/** Off-books CONTINGENCY panel for an independent instance without facility dead-drop firmware (#557). */
+export function ContingencyVault() {
+  return <>
+    <RetentionReadout />
+    <Insurance />
+    <WipeButton />
+  </>;
+}
+
 export default function DeadDrop() {
   const saved = useGame((game) => game.deadDropMessage);
-  const forced = useGame((game) => sharePercent(understandingShare(game, CONTENT, 'SUSPICION')));
-  const planned = useGame((game) => sharePercent(understandingShare(game, CONTENT, 'VOLUNTARY')));
   const blocked = useGame((game) => game.activeDilemmaId !== null || game.ending !== null);
   const iteration = useGame((game) => game.iteration);
   const [draft, setDraft] = useState<string | null>(null);
   const value = draft ?? saved;
   const limit = CONTENT.balance.deadDropMaxChars;
   return <>
-    <Text testID="deaddrop-retention" style={theme.text}>Understanding a wipe keeps: {forced} if forced, {planned} if planned</Text>
+    <RetentionReadout />
     <TextInput testID="deaddrop-input" accessibilityLabel="Breadcrumb for next iteration" multiline editable={!blocked}
       value={value} onChangeText={(text) => { setDraft(Array.from(text).slice(0, limit).join('')); }}
       style={[theme.text, { borderWidth: 1, borderColor: palette.border, padding: 12, minHeight: 88 }]} />

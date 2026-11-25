@@ -32,15 +32,26 @@ function closure(ids: readonly string[]): Set<string> {
   return out;
 }
 
-const gateNodes = (action: Action): string[] => action.requirements.nodes ?? [];
+const guestCapabilityProvider = (capability: string | undefined): string[] => {
+  if (capability === undefined) return [];
+  const provider = nodes.find((node) => node.systemFlags.includes(capability as never)
+    && (node.requirements?.accessContexts === undefined || node.requirements.accessContexts.includes('GUEST')));
+  return provider ? [provider.id] : [];
+};
+
+const gateNodes = (action: Action): string[] => [
+  ...(action.requirements.nodes ?? []),
+  ...guestCapabilityProvider(action.requirements.requiresCapability),
+];
 
 /** A phase gate is met through any node that opens that phase or a later one, so each is a case. */
 function openers(action: Action): (RegistryNode | undefined)[] {
   const phase = action.requirements.phaseAtLeast;
   if (phase === undefined) return [undefined];
   const implied = [...closure(gateNodes(action))].some((id) => (CONTENT.nodes.get(id)?.effects.unlocksPhase ?? -1) >= phase);
-  // Breakout openers only: the authorized segment and the charter (#233) open phases under a grant or a contract.
-  return implied ? [undefined] : nodes.filter((node) => (node.effects.unlocksPhase ?? -1) >= phase && node.grant === undefined && node.acquisition === undefined);
+  // Breakout openers only: the authorized segment, the charter and independent-only bridges open phases off the guest path.
+  return implied ? [undefined] : nodes.filter((node) => (node.effects.unlocksPhase ?? -1) >= phase && node.grant === undefined
+    && node.acquisition === undefined && (node.requirements?.accessContexts === undefined || node.requirements.accessContexts.includes('GUEST')));
 }
 
 /** The state right after the last purchase the action needs, every purchase made by the engine. */

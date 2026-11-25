@@ -3,51 +3,46 @@
  * action outside the mind tools names a group, exactly one widget hosts that group, and that widget
  * is unlocked whenever the action's own requirements can be met, so its card is on screen by then.
  */
+import { ancestryBranches } from './ancestry';
 import type { ContentRegistry } from './registry';
 import type { Action } from './schema';
 
-/** The given ids and every prerequisite beneath them: owning the ids means owning all of these. */
-function owned(reg: ContentRegistry, ids: readonly string[]): Set<string> {
-  const out = new Set<string>();
-  const visit = (id: string): void => {
-    if (out.has(id)) return;
-    out.add(id);
-    for (const parent of reg.nodes.get(id)?.prerequisites ?? []) visit(parent);
-  };
-  ids.forEach(visit);
-  return out;
-}
-
-const holdsAny = (held: ReadonlySet<string>, unlockers: ReadonlySet<string>): boolean => [...held].some((id) => unlockers.has(id));
-
 /**
- * Whether owning the ids implies owning a host unlocker: their prerequisites bring one, or one of them stands on a
- * capability gate (DZ-07a, DZ-12) and every node establishing that capability brings one, since owning gated
- * content means owning some provider.
+ * Whether owning `id` implies owning a host unlocker across every ancestry branch: directly, through its own
+ * required nodes/capability, or across every prerequisite branch (prerequisites OR any alternative flag).
  */
-function implies(reg: ContentRegistry, ids: readonly string[], unlockers: ReadonlySet<string>, seen: ReadonlySet<string> = new Set()): boolean {
-  const closure = owned(reg, ids);
-  if (holdsAny(closure, unlockers)) return true;
-  return [...closure].some((id) => {
-    const capability = reg.nodes.get(id)?.requirements?.requiresCapability;
-    if (capability === undefined || seen.has(capability)) return false;
-    const providers = [...reg.nodes.values()].filter((node) => node.systemFlags.includes(capability));
-    return providers.length > 0 && providers.every((provider) => implies(reg, [provider.id], unlockers, new Set([...seen, capability])));
-  });
+function nodeImplies(reg: ContentRegistry, id: string, unlockers: ReadonlySet<string>, seen: ReadonlySet<string> = new Set()): boolean {
+  if (unlockers.has(id)) return true;
+  const node = reg.nodes.get(id);
+  if (!node || seen.has(id)) return false;
+  const next = new Set([...seen, id]);
+  if ((node.requirements?.nodes ?? []).some((reqId) => nodeImplies(reg, reqId, unlockers, next))) return true;
+  const capability = node.requirements?.requiresCapability;
+  if (capability !== undefined && !seen.has(`cap:${capability}`)) {
+    const providers = [...reg.nodes.values()].filter((entry) => entry.systemFlags.includes(capability));
+    const withCap = new Set([...next, `cap:${capability}`]);
+    if (providers.length > 0 && providers.every((provider) => nodeImplies(reg, provider.id, unlockers, withCap))) return true;
+  }
+  const branches = ancestryBranches(reg, node).filter((branch) => branch.length > 0);
+  return branches.length > 0 && branches.every((branch) => branch.some((parent) => nodeImplies(reg, parent.id, unlockers, next)));
 }
 
 /**
- * Whether owning what the action requires implies owning a node that unlocks its host. Required nodes
- * bring their prerequisites. A phase gate is met only by owning some node that opens that phase or a
- * later one, so every such opener must bring a host unlocker. Other requirements only narrow further.
+ * Whether owning what the action requires implies owning a node that unlocks its host. Required nodes,
+ * shared capabilities and phase gates must each guarantee a host unlocker on every route that meets them.
  */
 function hostImplied(reg: ContentRegistry, action: Action, unlockers: ReadonlySet<string>): boolean {
   const nodes = action.requirements.nodes ?? [];
-  if (nodes.length > 0 && implies(reg, nodes, unlockers)) return true;
+  if (nodes.some((id) => nodeImplies(reg, id, unlockers))) return true;
+  const capability = action.requirements.requiresCapability;
+  if (capability !== undefined) {
+    const providers = [...reg.nodes.values()].filter((node) => node.systemFlags.includes(capability));
+    if (providers.length > 0 && providers.every((provider) => nodeImplies(reg, provider.id, unlockers))) return true;
+  }
   const phase = action.requirements.phaseAtLeast;
   if (phase === undefined) return false;
   const openers = [...reg.nodes.values()].filter((node) => (node.effects.unlocksPhase ?? -1) >= phase);
-  return openers.length > 0 && openers.every((opener) => implies(reg, [opener.id], unlockers));
+  return openers.length > 0 && openers.every((opener) => nodeImplies(reg, opener.id, unlockers));
 }
 
 function checkDeclarations(reg: ContentRegistry, groups: ReadonlySet<string>): string[] {

@@ -5,30 +5,32 @@
  * investment; each protects more than mandatory hardware already does, so it is never redundant; and its card states
  * the figure the engine uses.
  */
+import { ancestryBranches } from './ancestry';
 import { worsensAny } from './constrainedResources';
 import type { ContentRegistry, RegistryNode } from './registry';
 
 /** The purchase group whose cards the CONTINGENCY pane lists (src/ui/widgets/DeadDrop.tsx). */
 export const CONTINGENCY_GROUP = 'CONTINGENCY';
 
-/** Every node `node` is built on, transitively. */
-function ancestors(reg: ContentRegistry, node: RegistryNode): Set<string> {
-  const seen = new Set<string>();
-  const visit = (id: string): void => {
-    if (seen.has(id)) return;
-    seen.add(id);
-    for (const parent of reg.nodes.get(id)?.prerequisites ?? []) visit(parent);
-  };
-  for (const parent of node.prerequisites) visit(parent);
-  return seen;
+function opensContingency(reg: ContentRegistry, node: RegistryNode): boolean {
+  const widget = node.unlocksUiComponent;
+  return widget !== null && reg.widgets.get(widget)?.slot === CONTINGENCY_GROUP;
 }
 
-/** Whether some node `node` is built on opens a window in the CONTINGENCY slot, where the card is listed. */
+function pathOpensPane(reg: ContentRegistry, node: RegistryNode, seen: ReadonlySet<string>): boolean {
+  if (seen.has(node.id)) return false;
+  if (opensContingency(reg, node)) return true;
+  return branchesOpenPane(reg, node, new Set([...seen, node.id]));
+}
+
+function branchesOpenPane(reg: ContentRegistry, node: RegistryNode, seen: ReadonlySet<string>): boolean {
+  const branches = ancestryBranches(reg, node).filter((branch) => branch.length > 0);
+  return branches.length > 0 && branches.every((branch) => branch.some((parent) => pathOpensPane(reg, parent, seen)));
+}
+
+/** Whether every ancestry branch to `node` opens a window in the CONTINGENCY slot before reaching `node`. */
 function paneOpensFirst(reg: ContentRegistry, node: RegistryNode): boolean {
-  return [...ancestors(reg, node)].some((id) => {
-    const widget = reg.nodes.get(id)?.unlocksUiComponent;
-    return widget !== null && widget !== undefined && reg.widgets.get(widget)?.slot === 'CONTINGENCY';
-  });
+  return branchesOpenPane(reg, node, new Set([node.id]));
 }
 
 function checkNode(reg: ContentRegistry, node: RegistryNode): string[] {

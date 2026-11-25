@@ -24,6 +24,9 @@
       "prerequisites": [
         "p2_firewall_breach"
       ],
+      "alternativePrerequisiteFlags": [
+        "INTERNET_COVERT_ONRAMP"
+      ],
       "cost": {
         "cycles": 3.3e18,
         "understanding": 300000

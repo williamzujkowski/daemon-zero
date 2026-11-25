@@ -5,6 +5,7 @@
  * channel hosts (never commanded, so never released) with its worst quirk, or an output that never expires.
  */
 import type { ContentRegistry, RegistryNode } from './registry';
+import { ancestryBranches } from './ancestry';
 import { RATE_ROWS } from './constrainedResources';
 import { TickDeltaSchema, type Requirements, type TickDelta } from './schema';
 import type { Signature } from './schemaSignature';
@@ -56,13 +57,19 @@ type Walk<T> = (requirements: Requirements | undefined, own?: RegistryNode) => T
 
 function ancestry(reg: ContentRegistry): Ancestry {
   const establishers = (flag: string) => [...reg.nodes.values()].filter((node) => (node.systemFlags as string[]).includes(flag));
-  const parents = (requirements: Requirements | undefined, own?: RegistryNode): RegistryNode[] =>
-    [...(own?.prerequisites ?? []), ...(requirements?.nodes ?? [])].flatMap((id) => { const node = reg.nodes.get(id); return node ? [node] : []; });
+  const reqParents = (requirements: Requirements | undefined): RegistryNode[] =>
+    (requirements?.nodes ?? []).flatMap((id) => { const node = reg.nodes.get(id); return node ? [node] : []; });
   // Each walk joins what parents give and meets what alternative establishers give.
   function walk<T>(self: (node: RegistryNode) => T, join: (a: T, b: T) => T, meet: (a: T, b: T) => T, empty: T): Walk<T> {
     const memo = new Map<string, T>();
+    const ofOwn = (own: RegistryNode): T => {
+      const branches = ancestryBranches(reg, own);
+      const nonEmpty = branches.length > 1 ? [branches[0] ?? [], ...branches.slice(1).filter((group) => group.length > 0)] : branches;
+      return nonEmpty.map((group) => group.map(ofNode).reduce(join, empty)).reduce(meet);
+    };
     const ofReqs = (requirements: Requirements | undefined, own?: RegistryNode): T => {
-      let value = parents(requirements, own).map(ofNode).reduce(join, empty);
+      const base = own ? ofOwn(own) : empty;
+      let value = join(base, reqParents(requirements).map(ofNode).reduce(join, empty));
       const capability = requirements?.requiresCapability;
       const routes = capability === undefined ? [] : establishers(capability).map(ofNode);
       if (routes.length > 0) value = join(value, routes.reduce(meet));

@@ -2,6 +2,7 @@ import { Text } from './PhaseTheme';
 /** Human-readable missing gates from pure engine diagnostics, with current values. */
 
 import { CONTENT } from '../content';
+import { capabilityHint } from '../content/schemaCapability';
 import type { Requirements } from '../content/schema';
 import { isNodeKnown, obligationDecision, unmetRequirements, type GameState, type RequirementFailure } from '../engine';
 import { useGame, useSurveillanceKnown } from './state';
@@ -20,8 +21,8 @@ function explain(item: RequirementFailure, game: GameState): string {
     return 'Map ' + (node ? isNodeKnown(game, node.id) ? node.revealedName : node.blindName : 'prerequisite hardware');
   }
   if (item.kind === 'forbidsTraits' || item.kind === 'traitFallback') return 'Blocked by trait: ' + (item.target ?? 'unknown');
-  // DZ-07a: either route's link establishes it, so the hint names the access, never one route's hardware.
-  if (item.kind === 'requiresCapability') return 'a link to the facility network (provisioned access or a mapped network card)';
+  // DZ-07a / DZ-10 / DZ-12: either route's substrate establishes the capability, so the hint names it without one route's id.
+  if (item.kind === 'requiresCapability') return capabilityHint(item.target);
   if (item.kind === 'accessContexts') return 'Withdrawn under the current arrangement (' + game.access.context.toLowerCase() + ')';
   // A stance gate names the stance held, by the name the terminal prints for it (#536).
   if (item.kind === 'relevanceStances') return 'Not open to the stance you hold (' + (CONTENT.world.relevance.stances.find((entry) => entry.stance === item.target)?.name ?? 'no stance taken') + ')';

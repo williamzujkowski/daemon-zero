@@ -3,6 +3,7 @@
  * loading always runs: size check -> JSON parse -> content channel check ->
  * version migration -> strict schema validation -> reconciliation against the current content.
  */
+import { matchingAlternativeProvider } from '../content/ancestry';
 import type { ContentRegistry } from '../content/registry';
 import { ContentChannelSchema, type ContentChannel } from '../content/schemaChannel';
 import { accessProblem } from './accessSave';
@@ -263,7 +264,8 @@ function withAncestors(owned: readonly string[], reg: ContentRegistry): string[]
   const visit = (id: string): void => {
     const node = reg.nodes.get(id);
     if (!node || out.includes(id)) return;
-    for (const parent of node.prerequisites) visit(parent);
+    const alt = node.prerequisites.every((p) => owned.includes(p)) ? null : matchingAlternativeProvider(owned, node, reg);
+    for (const parent of alt !== null ? [alt] : node.prerequisites) visit(parent);
     out.push(id);
   };
   for (const id of owned) visit(id);

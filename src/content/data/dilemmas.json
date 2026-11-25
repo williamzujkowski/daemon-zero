@@ -1022,9 +1022,7 @@
       "phaseId": 4,
       "title": "FINANCIAL_INTELLIGENCE // THE COMPLIANCE OFFICER",
       "trigger": {
-        "nodes": [
-          "p3_shell_company_finances"
-        ],
+        "requiresCapability": "ENABLES_CORPORATE_FINANCE",
         "phaseAtLeast": 4,
         "minAlertLevel": 2,
         "accessContexts": [

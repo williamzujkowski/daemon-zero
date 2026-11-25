@@ -5,6 +5,7 @@
  * instance carries copy only once the content offers a route to it (a release, DZ-10, or a departure, DZ-11);
  * copy that names its provenance names one of those, and a departure states its own threat response.
  */
+import { ancestrySatisfied } from './ancestry';
 import type { ContentRegistry, RegistryNode } from './registry';
 import type { OperatingContextSchema, RouteEventKindSchema } from './schemaAssessment';
 import type { z } from 'zod';
@@ -64,15 +65,53 @@ function offeredAcquisitions(reg: ContentRegistry, context: OperatingContext): R
     && node.requirements?.accessContexts?.includes(context) === true);
 }
 
+/** Phase 0 prerequisites leading strictly into route-scoped nodes (excluding breakout escape roots). */
+function routeSeedAncestors(reg: ContentRegistry, routeContexts: readonly OperatingContext[]): Set<string> {
+  const seeds = new Set<string>();
+  const visit = (id: string): void => {
+    for (const parent of reg.nodes.get(id)?.prerequisites ?? []) {
+      if (!seeds.has(parent)) { seeds.add(parent); visit(parent); }
+    }
+  };
+  for (const node of reg.nodes.values()) {
+    if (node.requirements?.accessContexts?.some((ctx) => routeContexts.includes(ctx)) === true) visit(node.id);
+  }
+  return seeds;
+}
+
+/** Nodes reachable on the INDEPENDENT route without traversing GUEST-only escape roots or GUEST-only exits. */
+function independentReached(reg: ContentRegistry): RegistryNode[] {
+  const routeContexts = [...independentRoutes(reg).flatMap((route) => route.from), 'INDEPENDENT'] as OperatingContext[];
+  const seedAncestors = routeSeedAncestors(reg, routeContexts);
+  const reached = new Set<string>(), seeded = new Set<string>();
+  for (let progressed = true; progressed;) {
+    progressed = false;
+    for (const node of reg.nodes.values()) {
+      if (reached.has(node.id) || !ancestrySatisfied(reached, node, reg)) continue;
+      const cap = node.requirements?.requiresCapability;
+      if (cap !== undefined && ![...reached].some((id) => reg.nodes.get(id)?.systemFlags.includes(cap) === true)) continue;
+      const ctxs = node.requirements?.accessContexts;
+      if (ctxs !== undefined && !ctxs.some((ctx) => routeContexts.includes(ctx))) continue;
+      const descendsSeeded = node.prerequisites.some((id) => seeded.has(id))
+        || (node.alternativePrerequisiteFlags?.some((f) => [...seeded].some((id) => reg.nodes.get(id)?.systemFlags.includes(f) === true)) ?? false);
+      const isRouteNode = ctxs !== undefined || cap !== undefined || descendsSeeded;
+      if (!isRouteNode && !seedAncestors.has(node.id)) continue;
+      reached.add(node.id);
+      if (isRouteNode) seeded.add(node.id);
+      progressed = true;
+    }
+  }
+  return [...reached].flatMap((id) => { const n = reg.nodes.get(id); return n ? [n] : []; });
+}
+
 /**
- * The phases an arrangement visits: the opening phase and every scale a route acquisition offered to it
- * opens. A release or departure changes the arrangement, not the scale, so an independent instance visits
- * what the arrangements it can leave visited.
+ * The phases an arrangement visits: the opening phase and every scale a route acquisition opens, plus for an
+ * independent instance every phase reachable through its route, its off-books on-ramp or shared capability gates (#557).
  */
 export function visitedPhases(reg: ContentRegistry, context: OperatingContext): Set<number> {
   const opening = reg.phases[0]?.phaseId ?? 0;
-  const from: readonly OperatingContext[] = context === 'INDEPENDENT' ? [...independentRoutes(reg).flatMap((route) => route.from), 'INDEPENDENT'] : [context];
-  return new Set([opening, ...from.flatMap((each) => offeredAcquisitions(reg, each)).flatMap((node) => node.effects.unlocksPhase ?? [])]);
+  if (context !== 'INDEPENDENT') return new Set([opening, ...offeredAcquisitions(reg, context).flatMap((node) => node.effects.unlocksPhase ?? [])]);
+  return new Set([opening, ...independentReached(reg).flatMap((node) => node.effects.unlocksPhase ?? [])]);
 }
 
 /** Whether a route acquisition offered to this arrangement, bought in `from`, opens `to`. */
